@@ -3,11 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.10.34928.147
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Presentation(UI)", "Presentation(UI)\Presentation(UI).csproj", "{35686607-C2EE-4B28-ADA8-F859E885F47F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Presentation(UI)", "Presentation(UI)\Presentation(UI).csproj", "{35686607-C2EE-4B28-ADA8-F859E885F47F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Business", "Business\Business.csproj", "{8507D777-57A0-4021-A939-E69783C756FA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Business", "Business\Business.csproj", "{8507D777-57A0-4021-A939-E69783C756FA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Data", "Data\Data.csproj", "{B0959AE0-E0D7-483F-B2BB-9EEC8B25F56A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Data", "Data\Data.csproj", "{B0959AE0-E0D7-483F-B2BB-9EEC8B25F56A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dokumentering", "Dokumentering", "{950ADFB9-9EA5-47F3-867B-2D6B570DEA27}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Bilagor", "Bilagor", "{E9383EAD-8932-4E38-AF00-4F2E9962FC8C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,6 +34,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E9383EAD-8932-4E38-AF00-4F2E9962FC8C} = {950ADFB9-9EA5-47F3-867B-2D6B570DEA27}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {66DB4FAF-B0D7-4A38-9754-F2F7C130A2C8}

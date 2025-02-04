@@ -94,36 +94,48 @@
             </ul>
         </div>
 
-        <!-- ✅ Modal för att skapa ny beställning -->
-        <div class="modal fade" id="createOrderModal">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Skapa ny beställning</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <label class="form-label">Tjänst</label>
-                        <input type="text" class="form-control mb-2" id="orderServiceTitle" placeholder="Ange tjänst">
+    <!-- ✅ Modal för att skapa ny beställning -->
+    <div class="modal fade" id="createOrderModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Skapa ny beställning</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Dropdown för Tjänst -->
+                    <label class="form-label">Tjänst</label>
+                    <select class="form-select mb-2" id="orderService">
+                        <option value="Städning">Städning</option>
+                        <option value="Fönsterputs">Fönsterputs</option>
+                        <option value="Gräsklippning">Gräsklippning</option>
+                        <option value="Snöröjning">Snöröjning</option>
+                    </select>
 
-                        <label class="form-label">Timmar</label>
-                        <input type="number" class="form-control mb-2" id="orderHours" placeholder="Antal timmar">
+                    <!-- Fält för timmar -->
+                    <label class="form-label">Timmar</label>
+                    <input type="number" class="form-control mb-2" id="orderHours" placeholder="Antal timmar">
 
-                        <label class="form-label">Pris per timme</label>
-                        <input type="number" class="form-control mb-2" id="orderPricePerHour" placeholder="Pris per timme">
+                    <!-- Fält för pris per timme -->
+                    <label class="form-label">Pris per timme</label>
+                    <input type="number" class="form-control mb-2" id="orderPricePerHour" placeholder="Pris per timme">
 
-                        <label class="form-label">Kund</label>
-                        <select class="form-select mb-2" id="orderCustomer">
-                            <option>Företag A</option>
-                            <option>Företag B</option>
-                            <option>Företag C</option>
-                        </select>
+                    <!-- Dropdown för Kund -->
+                    <label class="form-label">Kund</label>
+                    <select class="form-select mb-2" id="orderCustomer">
+                        <option value="Företag A">Företag A</option>
+                        <option value="Företag B">Företag B</option>
+                        <option value="Företag C">Företag C</option>
+                        <option value="Företag D">Företag D</option>
+                    </select>
 
-                        <button class="btn btn-primary mt-2" id="saveOrder">Lägg till beställning</button>
-                    </div>
+                    <!-- Spara-knapp -->
+                    <button class="btn btn-primary mt-2" id="saveOrder">Lägg till beställning</button>
                 </div>
             </div>
         </div>
+    </div>
+
 
         <!-- 📌 Sektion: Sammanställning -->
         <div class="border p-3 mb-4">
@@ -157,13 +169,16 @@
 
 </div>
 
+<!-- ✅ JavaScript Sektion 2: Hantera "Skapa ny beställning" -->
 <script>
-    // 🔵 Funktion för att uppdatera sammanställning (totala timmar och total pris)
+    // 🔵 JavaScript Sektion 2: Hantera "Skapa ny beställning" och uppdatera listan och sammanställning
+
+    // Funktion för att uppdatera sammanställning (Sektion 3)
     function updateSummary() {
         let totalHours = 0;
         let totalPrice = 0;
 
-        // Loopa igenom alla beställningar och extrahera timmar och totalpris
+        // Loopa igenom alla beställningar i listan
         document.querySelectorAll('#orderList li').forEach(order => {
             const text = order.querySelector('div').innerText;
             const match = text.match(/(\d+) timmar x (\d+) kr\/timme = (\d+) kr/);
@@ -174,19 +189,18 @@
             }
         });
 
-        // Uppdatera sammanställningsfälten
+        // Uppdatera fälten i sammanställningen (Sektion 3)
         document.getElementById('totalHours').value = totalHours;
         document.getElementById('totalPrice').value = `${totalPrice} kr`;
     }
 
-    // 🔵 Hantera "Lägg till beställning" från popup
+    // Eventlistener för "Lägg till beställning" från popupen
     document.getElementById('saveOrder').addEventListener('click', function () {
-        const serviceTitle = document.getElementById('orderServiceTitle').value.trim();
+        const serviceTitle = document.getElementById('orderService').value; // Uppdaterat för dropdown
         const hours = parseInt(document.getElementById('orderHours').value.trim(), 10);
         const pricePerHour = parseInt(document.getElementById('orderPricePerHour').value.trim(), 10);
         const customer = document.getElementById('orderCustomer').value;
 
-        // Kontrollera att alla värden är giltiga
         if (serviceTitle && !isNaN(hours) && !isNaN(pricePerHour) && customer) {
             const totalPrice = hours * pricePerHour;
             const orderList = document.getElementById('orderList');
@@ -195,54 +209,30 @@
             const listItem = document.createElement('li');
             listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
             listItem.innerHTML = `
-                    <div>
-                        <strong>${serviceTitle}</strong> - ${hours} timmar x ${pricePerHour} kr/timme = <strong>${totalPrice} kr</strong>
-                        <br><small>Kund: ${customer}</small>
-                    </div>
-                    <button type="button" class="btn btn-danger btn-sm remove-order">Ta bort</button>
-                `;
+                            <div>
+                                <strong>${serviceTitle}</strong> - ${hours} timmar x ${pricePerHour} kr/timme = <strong>${totalPrice} kr</strong>
+                                <br><small>Kund: ${customer}</small>
+                            </div>
+                            <button type="button" class="btn btn-danger btn-sm remove-order">Ta bort</button>
+                        `;
             orderList.appendChild(listItem);
 
-            // Uppdatera sammanställningen
+            // Uppdatera sammanställningen (Sektion 3)
             updateSummary();
 
             // Rensa inputfält och stäng modal
-            document.getElementById('orderServiceTitle').value = '';
+            document.getElementById('orderService').value = ''; // Uppdaterat för dropdown
             document.getElementById('orderHours').value = '';
             document.getElementById('orderPricePerHour').value = '';
             bootstrap.Modal.getInstance(document.getElementById('createOrderModal')).hide();
-        } else {
-            alert('Vänligen fyll i alla fält korrekt.'); // Felmeddelande vid ogiltiga värden
         }
     });
 
-    // 🔵 Hantera "Ta bort beställning" från listan
+    // Eventlistener för "Ta bort beställning"
     document.getElementById('orderList').addEventListener('click', function (e) {
         if (e.target.classList.contains('remove-order')) {
-            e.target.closest('li').remove(); // Ta bort beställningen
+            e.target.closest('li').remove(); // Ta bort beställningen från listan
             updateSummary(); // Uppdatera sammanställningen efter borttagning
-        }
-    });
-
-    // 🔵 Hantera "Skapa ny projektledare"
-    document.getElementById('saveProjectLeader').addEventListener('click', function () {
-        const firstName = document.getElementById('newProjectLeaderFirstName').value.trim();
-        const lastName = document.getElementById('newProjectLeaderLastName').value.trim();
-        if (firstName && lastName) {
-            const fullName = `${firstName} ${lastName}`;
-            const projectLeaderDropdown = document.getElementById('projectLeader');
-
-            // Lägg till projektledaren i dropdown
-            const option = new Option(fullName, fullName);
-            projectLeaderDropdown.add(option);
-            projectLeaderDropdown.value = fullName;
-
-            // Rensa fälten och stäng modal
-            document.getElementById('newProjectLeaderFirstName').value = '';
-            document.getElementById('newProjectLeaderLastName').value = '';
-            bootstrap.Modal.getInstance(document.getElementById('createProjectLeaderModal')).hide();
-        } else {
-            alert('Vänligen fyll i både förnamn och efternamn.'); // Felmeddelande vid ogiltiga värden
         }
     });
 </script>

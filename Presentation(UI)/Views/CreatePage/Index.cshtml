@@ -75,7 +75,7 @@
         <div class="border p-3 mb-4">
             <div class="d-flex justify-content-between align-items-center">
                 <h4 class="mb-3">Beställningar</h4>
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#createOrderModal">Skapa ny beställning</button>
+                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createOrderModal">Skapa ny beställning</button>
             </div>
 
             <!-- Lista över beställningar -->
@@ -91,15 +91,24 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
+                        <!-- Dropdown för Tjänst -->
                         <label class="form-label">Tjänst</label>
-                        <input type="text" class="form-control mb-2" id="orderServiceTitle" placeholder="Ange tjänst">
+                        <select class="form-select mb-2" id="orderService">
+                            <option value="Städning">Städning</option>
+                            <option value="Fönsterputs">Fönsterputs</option>
+                            <option value="Gräsklippning">Gräsklippning</option>
+                            <option value="Snöröjning">Snöröjning</option>
+                        </select>
 
+                        <!-- Fält för timmar -->
                         <label class="form-label">Timmar</label>
                         <input type="number" class="form-control mb-2" id="orderHours" placeholder="Antal timmar">
 
+                        <!-- Fält för pris per timme -->
                         <label class="form-label">Pris per timme</label>
                         <input type="number" class="form-control mb-2" id="orderPricePerHour" placeholder="Pris per timme">
 
+                        <!-- Dropdown för Kund -->
                         <label class="form-label">Kund</label>
                         <select class="form-select mb-2" id="orderCustomer">
                             <option value="Företag A">Företag A</option>
@@ -108,11 +117,14 @@
                             <option value="Företag D">Företag D</option>
                         </select>
 
+                        <!-- Spara-knapp -->
                         <button class="btn btn-primary mt-2" id="saveOrder">Lägg till beställning</button>
                     </div>
                 </div>
             </div>
         </div>
+
+
 
 
 
@@ -194,7 +206,7 @@
 
     // Eventlistener för "Lägg till beställning" från popupen
     document.getElementById('saveOrder').addEventListener('click', function () {
-        const serviceTitle = document.getElementById('orderServiceTitle').value.trim();
+        const serviceTitle = document.getElementById('orderService').value; // Uppdaterat för dropdown
         const hours = parseInt(document.getElementById('orderHours').value.trim(), 10);
         const pricePerHour = parseInt(document.getElementById('orderPricePerHour').value.trim(), 10);
         const customer = document.getElementById('orderCustomer').value;
@@ -207,19 +219,19 @@
             const listItem = document.createElement('li');
             listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
             listItem.innerHTML = `
-                    <div>
-                        <strong>${serviceTitle}</strong> - ${hours} timmar x ${pricePerHour} kr/timme = <strong>${totalPrice} kr</strong>
-                        <br><small>Kund: ${customer}</small>
-                    </div>
-                    <button type="button" class="btn btn-danger btn-sm remove-order">Ta bort</button>
-                `;
+                        <div>
+                            <strong>${serviceTitle}</strong> - ${hours} timmar x ${pricePerHour} kr/timme = <strong>${totalPrice} kr</strong>
+                            <br><small>Kund: ${customer}</small>
+                        </div>
+                        <button type="button" class="btn btn-danger btn-sm remove-order">Ta bort</button>
+                    `;
             orderList.appendChild(listItem);
 
             // Uppdatera sammanställningen (Sektion 3)
             updateSummary();
 
             // Rensa inputfält och stäng modal
-            document.getElementById('orderServiceTitle').value = '';
+            document.getElementById('orderService').value = ''; // Uppdaterat för dropdown
             document.getElementById('orderHours').value = '';
             document.getElementById('orderPricePerHour').value = '';
             bootstrap.Modal.getInstance(document.getElementById('createOrderModal')).hide();

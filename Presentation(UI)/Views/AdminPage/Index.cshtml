@@ -1,6 +1,7 @@
 ﻿@*
-    Admin Page för att hantera Projektledare och Kunder
+    Admin Page för att hantera Projektledare, Kunder och Tjänster
 *@
+
 @{
     ViewData["Title"] = "Admin Page";
 }
@@ -20,13 +21,24 @@
     </div>
 
     <!-- 📌 Sektion 2: Kunder -->
-    <div class="border p-3">
+    <div class="border p-3 mb-4">
         <div class="d-flex justify-content-between align-items-center">
             <h4>Kunder</h4>
             <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createCustomerModal">Lägg till</button>
         </div>
         <ul class="list-group mt-3" id="customerList">
             <!-- Dynamisk lista över Kunder -->
+        </ul>
+    </div>
+
+    <!-- 📌 Sektion 3: Tjänster -->
+    <div class="border p-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4>Tjänster</h4>
+            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createServiceModal">Lägg till</button>
+        </div>
+        <ul class="list-group mt-3" id="serviceList">
+            <!-- Dynamisk lista över Tjänster -->
         </ul>
     </div>
 </div>
@@ -67,6 +79,23 @@
     </div>
 </div>
 
+<!-- ✅ Modal för att skapa/ändra Tjänster -->
+<div class="modal fade" id="createServiceModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Lägg till/Redigera Tjänst</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <label class="form-label">Tjänstnamn</label>
+                <input type="text" class="form-control mb-2" id="serviceName" placeholder="Tjänstnamn">
+                <button class="btn btn-success mt-2" id="saveService">Spara</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     // 🔵 Hantera Projektledare
     document.getElementById('saveProjectLeader').addEventListener('click', function () {
@@ -80,12 +109,12 @@
             const listItem = document.createElement('li');
             listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
             listItem.innerHTML = `
-                    <span>${fullName}</span>
-                    <div>
-                        <button type="button" class="btn btn-warning btn-sm me-2 edit-project-leader">Redigera</button>
-                        <button type="button" class="btn btn-danger btn-sm remove-project-leader">Ta bort</button>
-                    </div>
-                `;
+                        <span>${fullName}</span>
+                        <div>
+                            <button type="button" class="btn btn-warning btn-sm me-2 edit-project-leader">Redigera</button>
+                            <button type="button" class="btn btn-danger btn-sm remove-project-leader">Ta bort</button>
+                        </div>
+                    `;
 
             projectLeaderList.appendChild(listItem);
 
@@ -93,19 +122,6 @@
             document.getElementById('projectLeaderFirstName').value = '';
             document.getElementById('projectLeaderLastName').value = '';
             bootstrap.Modal.getInstance(document.getElementById('createProjectLeaderModal')).hide();
-        }
-    });
-
-    document.getElementById('projectLeaderList').addEventListener('click', function (e) {
-        if (e.target.classList.contains('remove-project-leader')) {
-            e.target.closest('li').remove(); // Ta bort projektledaren
-        } else if (e.target.classList.contains('edit-project-leader')) {
-            const listItem = e.target.closest('li');
-            const name = listItem.querySelector('span').innerText.split(' ');
-            document.getElementById('projectLeaderFirstName').value = name[0];
-            document.getElementById('projectLeaderLastName').value = name[1];
-            bootstrap.Modal.getInstance(document.getElementById('createProjectLeaderModal')).show();
-            listItem.remove(); // Ta bort temporärt och lägg till igen när sparad
         }
     });
 
@@ -119,12 +135,12 @@
             const listItem = document.createElement('li');
             listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
             listItem.innerHTML = `
-                    <span>${customerName}</span>
-                    <div>
-                        <button type="button" class="btn btn-warning btn-sm me-2 edit-customer">Redigera</button>
-                        <button type="button" class="btn btn-danger btn-sm remove-customer">Ta bort</button>
-                    </div>
-                `;
+                        <span>${customerName}</span>
+                        <div>
+                            <button type="button" class="btn btn-warning btn-sm me-2 edit-customer">Redigera</button>
+                            <button type="button" class="btn btn-danger btn-sm remove-customer">Ta bort</button>
+                        </div>
+                    `;
 
             customerList.appendChild(listItem);
 
@@ -134,14 +150,40 @@
         }
     });
 
-    document.getElementById('customerList').addEventListener('click', function (e) {
-        if (e.target.classList.contains('remove-customer')) {
-            e.target.closest('li').remove(); // Ta bort kunden
-        } else if (e.target.classList.contains('edit-customer')) {
+    // 🔵 Hantera Tjänster
+    document.getElementById('saveService').addEventListener('click', function () {
+        const serviceName = document.getElementById('serviceName').value.trim();
+
+        if (serviceName) {
+            const serviceList = document.getElementById('serviceList');
+
+            const listItem = document.createElement('li');
+            listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+            listItem.innerHTML = `
+                        <span>${serviceName}</span>
+                        <div>
+                            <button type="button" class="btn btn-warning btn-sm me-2 edit-service">Redigera</button>
+                            <button type="button" class="btn btn-danger btn-sm remove-service">Ta bort</button>
+                        </div>
+                    `;
+
+            serviceList.appendChild(listItem);
+
+            // Rensa fält och stäng modal
+            document.getElementById('serviceName').value = '';
+            bootstrap.Modal.getInstance(document.getElementById('createServiceModal')).hide();
+        }
+    });
+
+    // Eventlistener för att ta bort eller redigera Tjänster
+    document.getElementById('serviceList').addEventListener('click', function (e) {
+        if (e.target.classList.contains('remove-service')) {
+            e.target.closest('li').remove(); // Ta bort tjänsten
+        } else if (e.target.classList.contains('edit-service')) {
             const listItem = e.target.closest('li');
-            const customerName = listItem.querySelector('span').innerText;
-            document.getElementById('customerName').value = customerName;
-            bootstrap.Modal.getInstance(document.getElementById('createCustomerModal')).show();
+            const serviceName = listItem.querySelector('span').innerText;
+            document.getElementById('serviceName').value = serviceName;
+            bootstrap.Modal.getInstance(document.getElementById('createServiceModal')).show();
             listItem.remove(); // Ta bort temporärt och lägg till igen när sparad
         }
     });
