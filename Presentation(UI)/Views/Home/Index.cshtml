@@ -1,0 +1,48 @@
+﻿@{
+    ViewData["Title"] = "My Page";
+}
+
+<div class="container mt-5">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h1">Header Title</h1>
+
+        <!-- Länk till CreatePage -->
+        <a asp-controller="CreatePage" asp-action="Index" class="btn btn-primary">
+            <i class="bi bi-plus"></i> Add Item
+        </a>
+    </div>
+
+    <!-- List Section -->
+    <ul style="margin-bottom: 50vh;" class="list-group">
+        <!-- List Item -->
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="mb-1">Title 1</h5>
+                <p class="mb-0 text-muted">Description 1</p>
+            </div>
+            <a asp-controller="ProjectPage" asp-action="Index" class="btn btn-outline-primary">Öppna</a>
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="mb-1">Title 2</h5>
+                <p class="mb-0 text-muted">Description 2</p>
+            </div>
+            <a asp-controller="ProjectPage" asp-action="Index" class="btn btn-outline-primary">Öppna</a>
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="mb-1">Title 3</h5>
+                <p class="mb-0 text-muted">Description 3</p>
+            </div>
+            <a asp-controller="ProjectPage" asp-action="Index" class="btn btn-outline-primary">Öppna</a>
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="mb-1">Title 4</h5>
+                <p class="mb-0 text-muted">Description 4</p>
+            </div>
+            <a asp-controller="ProjectPage" asp-action="Index" class="btn btn-outline-primary">Öppna</a>
+        </li>
+    </ul>
+</div>
