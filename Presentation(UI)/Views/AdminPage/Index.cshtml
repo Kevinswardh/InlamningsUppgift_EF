@@ -1,190 +1,228 @@
-﻿@*
-    Admin Page för att hantera Projektledare, Kunder och Tjänster
-*@
+﻿@model Presentation_UI_.ViewModels.AdminPageViewModel
 
 @{
     ViewData["Title"] = "Admin Page";
 }
 
 <div class="container mt-5">
-    <h2 class="mb-4">Admin Page</h2>
+    <h2 style="text-align: center;" class="mb-4">Admin Page</h2>
 
-    <!-- 📌 Sektion 1: Projektledare -->
-    <div class="border p-3 mb-4">
-        <div class="d-flex justify-content-between align-items-center">
-            <h4>Projektledare</h4>
+    <!-- 👐 Sektion 1: Projektledare -->
+    <div class="table-responsive mt-3  ">
+        <div style="border-radius: 12px;" class="border p-3 btn-dark mb-5  ">
+        <div class="d-flex justify-content-between align-items-center m-2">
+            <h4 style="color:aquamarine;">Projektledare</h4>
             <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createProjectLeaderModal">Lägg till</button>
         </div>
-        <ul class="list-group mt-3" id="projectLeaderList">
-            <!-- Dynamisk lista över Projektledare -->
-        </ul>
+           
+            <table class="table table-dark ">
+                <thead>
+                    <tr>
+                        <th>Namn</th>
+                        <th>E-post</th>
+                        <th>Telefon</th>
+                        <th>Avdelning</th>
+                        <th>Åtgärder</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var leader in Model.ProjectLeaders)
+                    {
+                        <tr>
+                            <td>@leader.Name</td>
+                            <td>@leader.Email</td>
+                            <td>@leader.Phone</td>
+                            <td>@leader.Department</td>
+                            <td>
+                                <form method="post" asp-action="DeleteProjectLeader" asp-route-id="@leader.ProjectLeaderID" class="d-inline">
+                                    <button type="submit" class="btn btn-danger btn-sm">Ta bort</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        
     </div>
 
-    <!-- 📌 Sektion 2: Kunder -->
-    <div class="border p-3 mb-4">
-        <div class="d-flex justify-content-between align-items-center">
-            <h4>Kunder</h4>
-            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createCustomerModal">Lägg till</button>
-        </div>
-        <ul class="list-group mt-3" id="customerList">
-            <!-- Dynamisk lista över Kunder -->
-        </ul>
+
+        <!-- 👐 Sektion 2: Kunder -->
+        <div style="border-radius: 12px;" class="border p-3 btn-dark mb-5">
+            <div class="d-flex justify-content-between align-items-center m-2">
+                <h4 style="color:aquamarine;">Kunder</h4>
+                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createCustomerModal">Lägg till</button>
+            </div>
+
+            <!-- 🌟 Kund-tabell -->
+          
+                <table class="table table-dark">
+                <thead>
+                    <tr>
+                        <th>Kund ID</th>
+                        <th>Namn</th>
+                        <th>Org.nr</th>
+                        <th>Adress</th>
+                        <th>Rabatt (%)</th>
+                        <th>Åtgärder</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var customer in Model.Customers)
+                    {
+                        <tr>
+                            <td>@customer.CustomerID</td>
+                            <td>@customer.CustomerName</td>
+                            <td>@customer.OrganizationNumber</td>
+                            <td>@customer.Address</td>
+                            <td>@customer.Discount %</td>
+                            <td>
+                                <form method="post" asp-action="DeleteCustomer" asp-route-id="@customer.CustomerID">
+                                    <input type="hidden" name="customerID" value="@customer.CustomerID" />
+                                    <button type="submit" class="btn btn-danger btn-sm">Ta bort</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+       
     </div>
 
-    <!-- 📌 Sektion 3: Tjänster -->
-    <div class="border p-3">
-        <div class="d-flex justify-content-between align-items-center">
-            <h4>Tjänster</h4>
-            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createServiceModal">Lägg till</button>
+
+
+        <!-- 👐 Sektion 3: Tjänster -->
+        <div style="border-radius: 12px;" class="border p-3 btn-dark mb-5">
+            <div class="d-flex justify-content-between align-items-center m-2">
+                <h4 style="color:aquamarine;">Tjänster</h4>
+                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createServiceModal">Lägg till</button>
+            </div>
+            <ul class="list-group mt-3 btn-dark ">
+                @foreach (var service in Model.Services)
+                {
+                    <li class="list-group-item d-flex justify-content-between align-items-center bg-dark text-light border-bottom p-3
+">
+                        <span>@service.ServiceName</span>
+                        <form method="post" asp-action="DeleteService">
+                            <input type="hidden" name="serviceID" value="@service.ServiceID" />
+                            <button type="submit" class="btn btn-danger btn-sm">Ta bort</button>
+                        </form>
+                    </li>
+                }
+            </ul>
         </div>
-        <ul class="list-group mt-3" id="serviceList">
-            <!-- Dynamisk lista över Tjänster -->
-        </ul>
-    </div>
+
 </div>
 
-<!-- ✅ Modal för att skapa/ändra Projektledare -->
+<!-- Modal för att skapa/ändra Projektledare -->
 <div class="modal fade" id="createProjectLeaderModal">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Lägg till/Redigera Projektledare</h5>
+                <h5 class="modal-title">Lägg till Projektledare</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <label class="form-label">Förnamn</label>
-                <input type="text" class="form-control mb-2" id="projectLeaderFirstName" placeholder="Förnamn">
-                <label class="form-label">Efternamn</label>
-                <input type="text" class="form-control mb-2" id="projectLeaderLastName" placeholder="Efternamn">
-                <button class="btn btn-success mt-2" id="saveProjectLeader">Spara</button>
-            </div>
+            <form method="post" asp-action="AddProjectLeader">
+                <div class="modal-body">
+                    <label class="form-label">Namn</label>
+                    <input type="text" class="form-control mb-2" name="Name" placeholder="Namn" required>
+                    <label class="form-label">E-post</label>
+                    <input type="email" class="form-control mb-2" name="Email" placeholder="E-post" required>
+                    <label class="form-label">Telefon</label>
+                    <input type="text" class="form-control mb-2" name="Phone" placeholder="Telefon" required>
+                    <label class="form-label">Avdelning</label>
+                    <input type="text" class="form-control mb-2" name="Department" placeholder="Avdelning" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Avbryt</button>
+                    <button type="submit" class="btn btn-success">Spara</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
-<!-- ✅ Modal för att skapa/ändra Kunder -->
-<div class="modal fade" id="createCustomerModal">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Lägg till/Redigera Kund</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <label class="form-label">Kundnamn</label>
-                <input type="text" class="form-control mb-2" id="customerName" placeholder="Kundnamn">
-                <button class="btn btn-success mt-2" id="saveCustomer">Spara</button>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- ✅ Modal för att skapa/ändra Tjänster -->
-<div class="modal fade" id="createServiceModal">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Lägg till/Redigera Tjänst</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <label class="form-label">Tjänstnamn</label>
-                <input type="text" class="form-control mb-2" id="serviceName" placeholder="Tjänstnamn">
-                <button class="btn btn-success mt-2" id="saveService">Spara</button>
+    <!-- ✅ Modal för att skapa/ändra Kunder -->
+    <div class="modal fade" id="createCustomerModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Lägg till Kund</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="post" asp-action="AddCustomer">
+                    <div class="modal-body">
+                        <label class="form-label">Kundnamn</label>
+                        <input type="text" class="form-control mb-2" name="CustomerName" placeholder="Kundnamn" required>
+
+                        <label class="form-label">Organisationsnummer</label>
+                        <input type="text" class="form-control mb-2" name="OrganizationNumber" placeholder="Organisationsnummer" required>
+
+                        <label class="form-label">Adress</label>
+                        <input type="text" class="form-control mb-2" name="Address" placeholder="Adress">
+
+                        <label class="form-label">Rabatt (%)</label>
+                        <input type="number" step="0.01" class="form-control mb-2" name="Discount" placeholder="Rabatt (valfritt)">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Avbryt</button>
+                        <button type="submit" class="btn btn-success">Spara</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
+
+    <!-- ✅ Modal för att skapa/ändra Tjänster -->
+    <div class="modal fade" id="createServiceModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Lägg till Tjänst</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="post" asp-action="AddService">
+                    <div class="modal-body">
+                        <label class="form-label">Tjänstnamn</label>
+                        <input type="text" class="form-control mb-2" name="ServiceName" placeholder="Tjänstnamn" required>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Avbryt</button>
+                        <button type="submit" class="btn btn-success">Spara</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+<!-- Laddnings-overlay (initialt dold) -->
+<div id="loadingOverlay" class="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 text-white justify-content-center align-items-center" style="display: none;">
+    <h1>Laddar...</h1>
 </div>
 
 <script>
-    // 🔵 Hantera Projektledare
-    document.getElementById('saveProjectLeader').addEventListener('click', function () {
-        const firstName = document.getElementById('projectLeaderFirstName').value.trim();
-        const lastName = document.getElementById('projectLeaderLastName').value.trim();
+    document.addEventListener("DOMContentLoaded", function () {
+        const loadingOverlay = document.getElementById("loadingOverlay");
 
-        if (firstName && lastName) {
-            const fullName = `${firstName} ${lastName}`;
-            const projectLeaderList = document.getElementById('projectLeaderList');
-
-            const listItem = document.createElement('li');
-            listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
-            listItem.innerHTML = `
-                        <span>${fullName}</span>
-                        <div>
-                            <button type="button" class="btn btn-warning btn-sm me-2 edit-project-leader">Redigera</button>
-                            <button type="button" class="btn btn-danger btn-sm remove-project-leader">Ta bort</button>
-                        </div>
-                    `;
-
-            projectLeaderList.appendChild(listItem);
-
-            // Rensa fält och stäng modal
-            document.getElementById('projectLeaderFirstName').value = '';
-            document.getElementById('projectLeaderLastName').value = '';
-            bootstrap.Modal.getInstance(document.getElementById('createProjectLeaderModal')).hide();
+        // Funktion för att visa overlay
+        function showLoadingOverlay() {
+            loadingOverlay.style.display = "flex"; // Visa overlay
+            loadingOverlay.classList.add("d-flex"); // Lägg till Bootstrap d-flex
         }
-    });
 
-    // 🔵 Hantera Kunder
-    document.getElementById('saveCustomer').addEventListener('click', function () {
-        const customerName = document.getElementById('customerName').value.trim();
-
-        if (customerName) {
-            const customerList = document.getElementById('customerList');
-
-            const listItem = document.createElement('li');
-            listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
-            listItem.innerHTML = `
-                        <span>${customerName}</span>
-                        <div>
-                            <button type="button" class="btn btn-warning btn-sm me-2 edit-customer">Redigera</button>
-                            <button type="button" class="btn btn-danger btn-sm remove-customer">Ta bort</button>
-                        </div>
-                    `;
-
-            customerList.appendChild(listItem);
-
-            // Rensa fält och stäng modal
-            document.getElementById('customerName').value = '';
-            bootstrap.Modal.getInstance(document.getElementById('createCustomerModal')).hide();
+        // Funktion för att dölja overlay (om det skulle behövas)
+        function hideLoadingOverlay() {
+            loadingOverlay.style.display = "none"; // Dölj overlay
+            loadingOverlay.classList.remove("d-flex"); // Ta bort Bootstrap d-flex
         }
-    });
 
-    // 🔵 Hantera Tjänster
-    document.getElementById('saveService').addEventListener('click', function () {
-        const serviceName = document.getElementById('serviceName').value.trim();
-
-        if (serviceName) {
-            const serviceList = document.getElementById('serviceList');
-
-            const listItem = document.createElement('li');
-            listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
-            listItem.innerHTML = `
-                        <span>${serviceName}</span>
-                        <div>
-                            <button type="button" class="btn btn-warning btn-sm me-2 edit-service">Redigera</button>
-                            <button type="button" class="btn btn-danger btn-sm remove-service">Ta bort</button>
-                        </div>
-                    `;
-
-            serviceList.appendChild(listItem);
-
-            // Rensa fält och stäng modal
-            document.getElementById('serviceName').value = '';
-            bootstrap.Modal.getInstance(document.getElementById('createServiceModal')).hide();
-        }
-    });
-
-    // Eventlistener för att ta bort eller redigera Tjänster
-    document.getElementById('serviceList').addEventListener('click', function (e) {
-        if (e.target.classList.contains('remove-service')) {
-            e.target.closest('li').remove(); // Ta bort tjänsten
-        } else if (e.target.classList.contains('edit-service')) {
-            const listItem = e.target.closest('li');
-            const serviceName = listItem.querySelector('span').innerText;
-            document.getElementById('serviceName').value = serviceName;
-            bootstrap.Modal.getInstance(document.getElementById('createServiceModal')).show();
-            listItem.remove(); // Ta bort temporärt och lägg till igen när sparad
-        }
+        // Lägg till event på alla "Spara"-knappar i modalerna
+        document.querySelectorAll("form").forEach(form => {
+            form.addEventListener("submit", function () {
+                showLoadingOverlay(); // Visa overlay vid formulärskick
+            });
+        });
     });
 </script>
+

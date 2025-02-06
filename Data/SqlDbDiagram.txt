@@ -1,0 +1,53 @@
+﻿Table Projektledare {
+  ProjektledareID int [pk, increment]
+  Namn varchar [not null]
+  Epost varchar [not null]
+  Telefon varchar
+  Avdelning varchar
+}
+
+Table Projekt {
+  ProjektID int [pk, increment]
+  Projektnummer varchar [unique, not null]
+  Benämning varchar
+  Startdatum date
+  Slutdatum date
+  Status varchar
+  ProjektledareID int [not null]
+}
+
+Table Kund {
+  KundID int [pk, increment]
+  Kundnamn varchar [not null]
+  Organisationsnummer varchar [unique, not null]
+  Adress text
+  Rabatt decimal
+}
+
+Table Tjänst {
+  TjänstID int [pk, increment]
+  Namn varchar [not null]
+}
+
+Table Beställning {
+  BeställningID int [pk, increment]
+  KundID int [not null]
+  TjänstID int [not null]
+  ProjektID int [not null]
+  Timmar decimal [not null]
+  Pris decimal [not null]
+}
+
+Table Sammanställning {
+  SammanställningID int [pk, increment]
+  ProjektID int [not null]
+  TotalaTimmar int
+  TotaltPris decimal
+  Anteckningar text
+}
+
+Ref: Projekt.ProjektledareID > Projektledare.ProjektledareID
+Ref: Beställning.KundID > Kund.KundID
+Ref: Beställning.TjänstID > Tjänst.TjänstID
+Ref: Beställning.ProjektID > Projekt.ProjektID
+Ref: Sammanställning.ProjektID > Projekt.ProjektID
