@@ -11,5 +11,7 @@ namespace Data.DatabaseRepository
         Task<IEnumerable<Service>> GetAllServicesAsync();
 
         Task<IEnumerable<Customer>> GetAllCustomersAsync();
+
+        Task<IEnumerable<Project>> GetAllProjectsWithDetailsAsync();
     }
 }

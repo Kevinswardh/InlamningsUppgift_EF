@@ -30,6 +30,20 @@ namespace Data.DatabaseRepository
             return await _context.Customers.ToListAsync();
         }
 
+        public async Task<IEnumerable<Project>> GetAllProjectsWithDetailsAsync()
+        {
+            return await _dbSet
+         .Include(p => p.Orders)
+             .ThenInclude(o => o.Customer)
+         .Include(p => p.Orders)
+             .ThenInclude(o => o.Service)
+         .Include(p => p.Summary) // Inkluderar Summary
+         .ToListAsync();
+
+        }
+
+
+
 
 
         /* /// <summary>

@@ -47,7 +47,8 @@ namespace Business.Services
         /// </summary>
         public async Task<IEnumerable<ProjectDTO>> GetAllProjectsAsync()
         {
-            var projects = await _projectRepository.GetAllAsync();
+            var projects = await _projectRepository.GetAllProjectsWithDetailsAsync();
+
             return projects.Select(p => new ProjectDTO
             {
                 ProjectID = p.ProjectID,
@@ -56,9 +57,31 @@ namespace Business.Services
                 StartDate = p.StartDate,
                 EndDate = p.EndDate,
                 Status = p.Status,
-                ProjectLeaderID = p.ProjectLeaderID
+                ProjectLeaderID = p.ProjectLeaderID,
+                Summary = p.Summary != null ? new SummaryDTO
+                {
+                    SummaryID = p.Summary.SummaryID,
+                    ProjectID = p.Summary.ProjectID,
+                    TotalHours = p.Summary.TotalHours ?? 0, // Om null, använd 0 som fallback
+                    TotalPrice = p.Summary.TotalPrice ?? 0m, // Om null, använd 0.0m som fallback
+                    Notes = p.Summary.Notes
+                } : null,
+                Orders = p.Orders?.Select(o => new OrderDTO
+                {
+                    CustomerID = o.CustomerID,
+                    ServiceID = o.ServiceID,
+                    ProjectID = o.ProjectID,
+                    Hours = o.Hours,
+                    Price = o.Price
+                }).ToList() ?? new List<OrderDTO>() // Om Orders är null, använd en tom lista
             }).ToList();
         }
+
+
+
+
+
+
 
         /// <summary>
         /// Hämtar ett projekt baserat på dess ID.

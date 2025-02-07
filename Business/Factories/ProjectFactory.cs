@@ -25,8 +25,16 @@ namespace Business.Factories
                 ProjectLeaderID = projectLeader?.ProjectLeaderID ?? 0,
                 ProjectLeader = projectLeader,
                 Orders = new List<Order>(), // Kan mappas senare om nödvändigt
-                Summary = null // Kan hanteras separat
+                Summary = dto.Summary != null
+                    ? new Summary
+                    {
+                        TotalHours = dto.Summary.TotalHours,
+                        TotalPrice = dto.Summary.TotalPrice,
+                        Notes = dto.Summary.Notes
+                    }
+                    : null
             };
         }
+
     }
 }

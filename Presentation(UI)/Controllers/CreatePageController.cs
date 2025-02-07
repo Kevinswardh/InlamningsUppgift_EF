@@ -2,103 +2,146 @@
 using Business.Services;
 using Presentation_UI_.ViewModels;
 using Business.DTOs;
+using System.Threading.Tasks;
+using System.Linq;
+using System;
+using Microsoft.Extensions.Logging;
 
 namespace Presentation_UI_.Controllers
 {
     public class CreatePageController : Controller
     {
         private readonly IProjectService _projectService;
+        private readonly ILogger<CreatePageController> _logger;
 
-        public CreatePageController(IProjectService projectService)
+        public CreatePageController(IProjectService projectService, ILogger<CreatePageController> logger)
         {
             _projectService = projectService;
+            _logger = logger;
         }
 
         // GET: /CreatePage/
         public async Task<IActionResult> Index()
         {
-            // Hämta nästa projektnummer från tjänsten
+            _logger.LogInformation("Index()-metoden anropades.");
+
             var nextProjectNumber = await _projectService.GetNextProjectNumberAsync();
+            _logger.LogInformation($"Nästa projektnummer: {nextProjectNumber}");
 
-            // Hämta alla projektledare
             var projectLeaders = await _projectService.GetAllProjectLeadersAsync();
-
-            // Hämta alla tjänster
             var services = await _projectService.GetAllServicesAsync();
-
-            // Hämta alla kunder
             var customers = await _projectService.GetAllCustomersAsync();
 
-            // Skapa och fyll ViewModel
-            var model = new ProjectViewModel
+            var model = new ProjectCreateViewModel
             {
                 ProjectNumber = nextProjectNumber,
+                StartDate = DateTime.Today,
                 ProjectLeaders = projectLeaders.Select(pl => new ProjectLeaderViewModel
                 {
                     ProjectLeaderID = pl.ProjectLeaderID,
                     Name = pl.Name
                 }).ToList(),
-               Orders = services.SelectMany(service =>
-                  customers.Select(customer => new OrderViewModel
-                      {
-                          Service = new ServiceViewModel
-                          {
-                              ServiceID = service.ServiceID,
-                              ServiceName = service.ServiceName
-                          },
-                          Customer = new CustomerViewModel
-                          {
-                              CustomerID = customer.CustomerID,
-                              CustomerName = customer.CustomerName
-                          }
-                      })
-                ).ToList()
+                Services = services.Select(s => new ServiceViewModel
+                {
+                    ServiceID = s.ServiceID,
+                    ServiceName = s.ServiceName
+                }).ToList(),
+                Customers = customers.Select(c => new CustomerViewModel
+                {
+                    CustomerID = c.CustomerID,
+                    CustomerName = c.CustomerName
+                }).ToList(),
+                Orders = new List<OrderViewModel>(),
+                Summary = new SummaryViewModel()
             };
 
+            _logger.LogInformation("ViewModel för Index skapad och returneras.");
             return View(model);
         }
 
-
         // POST: /CreatePage/Save
         [HttpPost]
-        public async Task<IActionResult> Save(ProjectViewModel model)
+        public async Task<IActionResult> Save(ProjectCreateViewModel model)
         {
-            if (ModelState.IsValid)
+            _logger.LogInformation("Save()-metoden anropades.");
+            _logger.LogInformation($"Mottagna värden -> TotalHours: {model.Summary?.TotalHours}, TotalPrice: {model.Summary?.TotalPrice}");
+
+            if (!ModelState.IsValid)
             {
-                // Omvandla ViewModel till DTO
-                var projectDto = new ProjectDTO
+                _logger.LogWarning("ModelState är ogiltig. Här är felen:");
+                foreach (var error in ModelState)
                 {
-                    ProjectNumber = model.ProjectNumber, // Använd det förifyllda projektnumret
-                    Description = model.Description,
-                    StartDate = model.StartDate,
-                    EndDate = model.EndDate,
-                    Status = model.Status,
-                    ProjectLeaderID = model.ProjectLeaderID,
-                    Orders = model.Orders.Select(o => new OrderDTO
+                    foreach (var subError in error.Value.Errors)
                     {
-                        CustomerID = o.CustomerID,
-                        ServiceID = o.ServiceID,
-                        ProjectID = model.ProjectID,
-                        Hours = o.Hours,
-                        Price = o.Price
-                    }).ToList(),
-                    Summary = new SummaryDTO
-                    {
-                        TotalHours = model.Summary.TotalHours,
-                        TotalPrice = model.Summary.TotalPrice,
-                        Notes = model.Summary.Notes
+                        _logger.LogWarning($"Fält: {error.Key}, Fel: {subError.ErrorMessage}");
                     }
-                };
+                }
 
-                // Skicka DTO till tjänsten
-                await _projectService.CreateProjectAsync(projectDto);
+                var projectLeaders = await _projectService.GetAllProjectLeadersAsync();
+                var services = await _projectService.GetAllServicesAsync();
+                var customers = await _projectService.GetAllCustomersAsync();
 
-                // Redirect till "Home" efter att projektet skapats
-                return RedirectToAction("Index", "Home");
+                model.ProjectLeaders = projectLeaders.Select(pl => new ProjectLeaderViewModel
+                {
+                    ProjectLeaderID = pl.ProjectLeaderID,
+                    Name = pl.Name
+                }).ToList();
+
+                model.Services = services.Select(s => new ServiceViewModel
+                {
+                    ServiceID = s.ServiceID,
+                    ServiceName = s.ServiceName
+                }).ToList();
+
+                model.Customers = customers.Select(c => new CustomerViewModel
+                {
+                    CustomerID = c.CustomerID,
+                    CustomerName = c.CustomerName
+                }).ToList();
+
+                _logger.LogWarning("Returnerar vy med ogiltig ModelState.");
+                return View("Index", model);
             }
 
-            // Om ModelState inte är giltig, visa vyn igen med de aktuella fälten
-            return View("Index", model);
+            _logger.LogInformation("ModelState är giltig. Skapar ProjectDTO.");
+
+            var projectDto = new ProjectDTO
+            {
+                ProjectNumber = model.ProjectNumber,
+                Description = model.Description,
+                StartDate = model.StartDate,
+                EndDate = model.EndDate,
+                Status = model.Status,
+                ProjectLeaderID = model.ProjectLeaderID,
+                Orders = model.Orders.Select(o => new OrderDTO
+                {
+                    CustomerID = o.CustomerID,
+                    ServiceID = o.ServiceID,
+                    ProjectID = model.ProjectID,
+                    Hours = o.Hours,
+                    Price = o.Price
+                }).ToList(),
+                Summary = new SummaryDTO
+                {
+                    TotalHours = (int)(model.Summary?.TotalHours ?? 0), // Omvandlar till heltal
+                    TotalPrice = model.Summary?.TotalPrice ?? 0,
+                    Notes = model.Summary?.Notes
+                }
+            };
+
+            _logger.LogInformation($"DTO skapad -> TotalHours: {projectDto.Summary.TotalHours}, TotalPrice: {projectDto.Summary.TotalPrice}");
+
+            await _projectService.CreateProjectAsync(projectDto);
+
+            _logger.LogInformation("Projektet har sparats i databasen. Omdirigerar till Home.");
+            return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        public IActionResult Cancel()
+        {
+            _logger.LogInformation("Cancel()-metoden anropades. Omdirigerar till Home.");
+            return RedirectToAction("Index", "Home");
         }
     }
 }

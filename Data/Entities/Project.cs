@@ -28,7 +28,7 @@ namespace Data.Entities
         // Navigation
         public ProjectLeader ProjectLeader { get; set; } = null!;
         public ICollection<Order> Orders { get; set; } = new List<Order>();
-        public Summary? Summary { get; set; }
+        public Summary Summary { get; set; }
     }
 
 }

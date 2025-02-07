@@ -1,4 +1,4 @@
-﻿@model Presentation_UI_.ViewModels.ProjectViewModel
+﻿@model Presentation_UI_.ViewModels.ProjectCreateViewModel
 
 @{
     ViewData["Title"] = "PROJEKT 101 - SKAPA NYTT";
@@ -8,7 +8,6 @@
     <h2 class="mb-4">PROJEKT 101 - SKAPA NYTT</h2>
 
     <form method="post" asp-action="Save">
-
         <!-- 📌 SECTION 1: PROJEKTINFO -->
         <div class="border p-3 mb-4">
             <h4 class="mb-3">Projektinfo</h4>
@@ -27,7 +26,6 @@
                     <input type="date" class="form-control" asp-for="StartDate" required>
                     <span asp-validation-for="StartDate" class="text-danger"></span>
                 </div>
-
                 <div class="col-md-3">
                     <label class="form-label">Slutdatum</label>
                     <input type="date" class="form-control" asp-for="EndDate">
@@ -35,11 +33,10 @@
                 <div class="col-md-3">
                     <label class="form-label">Status</label>
                     <select class="form-select" asp-for="Status">
-                        <option value="Pågår" selected="@((Model.Status == "Pågår") ? "selected" : "")">Pågår</option>
-                        <option value="Avslutat" selected="@((Model.Status == "Avslutat") ? "selected" : "")">Avslutat</option>
-                        <option value="Planerat" selected="@((Model.Status == "Planerat") ? "selected" : "")">Planerat</option>
+                        <option value="Pågår">Pågår</option>
+                        <option value="Avslutat">Avslutat</option>
+                        <option value="Planerat">Planerat</option>
                     </select>
-
                     <span asp-validation-for="Status" class="text-danger"></span>
                 </div>
                 <div class="col-md-6">
@@ -50,8 +47,6 @@
             </div>
         </div>
 
-
-
         <!-- 📌 SECTION 2: BESTÄLLNING -->
         <div class="border p-3 mb-4">
             <div class="d-flex justify-content-between align-items-center">
@@ -59,7 +54,6 @@
                 <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createOrderModal">Skapa ny beställning</button>
             </div>
 
-            <!-- Lista över beställningar -->
             <ul class="list-group mt-3" id="orderList">
                 @foreach (var order in Model.Orders)
                 {
@@ -75,7 +69,7 @@
             </ul>
         </div>
 
-        <!-- Skapa Ny Beställning Modal -->
+        <!-- Modal för ny beställning -->
         <div class="modal fade" id="createOrderModal" tabindex="-1" aria-labelledby="createOrderModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -84,56 +78,37 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <!-- Tjänst -->
                         <div class="mb-3">
                             <label class="form-label">Tjänst</label>
                             <select id="orderService" class="form-select">
-                                @if (!Model.Orders.Any(o => o.Service != null))
+                                <option selected disabled>Välj en tjänst</option>
+                                @foreach (var service in Model.Services)
                                 {
-                                    <option selected disabled>Don't exist any</option>
-                                }
-                                else
-                                {
-                                    @foreach (var service in Model.Orders.Select(o => o.Service).Distinct())
-                                    {
-                                        <option value="@service.ServiceID">@service.ServiceName</option>
-                                    }
+                                    <option value="@service.ServiceID">@service.ServiceName</option>
                                 }
                             </select>
-                            <span class="text-danger d-none" id="orderServiceError">Kontakta Admin</span>
+                            <span class="text-danger d-none" id="orderServiceError">Välj en giltig tjänst.</span>
                         </div>
-
-                        <!-- Timmar -->
                         <div class="mb-3">
                             <label class="form-label">Timmar</label>
                             <input type="number" id="orderHours" class="form-control">
-                            <span class="text-danger d-none" id="orderHoursError">Timmar måste vara ett positivt tal</span>
+                            <span class="text-danger d-none" id="orderHoursError">Timmar måste vara ett positivt tal.</span>
                         </div>
-
-                        <!-- Pris per timme -->
                         <div class="mb-3">
                             <label class="form-label">Pris per timme</label>
                             <input type="number" id="orderPricePerHour" class="form-control">
-                            <span class="text-danger d-none" id="orderPriceError">Pris måste vara ett positivt tal</span>
+                            <span class="text-danger d-none" id="orderPriceError">Pris måste vara ett positivt tal.</span>
                         </div>
-
-                        <!-- Kund -->
                         <div class="mb-3">
                             <label class="form-label">Kund</label>
                             <select id="orderCustomer" class="form-select">
-                                @if (!Model.Orders.Any(o => o.Customer != null))
+                                <option selected disabled>Välj en kund</option>
+                                @foreach (var customer in Model.Customers)
                                 {
-                                    <option selected disabled>Don't exist any</option>
-                                }
-                                else
-                                {
-                                    @foreach (var customer in Model.Orders.Select(o => o.Customer).Distinct())
-                                    {
-                                        <option value="@customer.CustomerID">@customer.CustomerName</option>
-                                    }
+                                    <option value="@customer.CustomerID">@customer.CustomerName</option>
                                 }
                             </select>
-                            <span class="text-danger d-none" id="orderCustomerError">Kontakta Admin</span>
+                            <span class="text-danger d-none" id="orderCustomerError">Välj en giltig kund.</span>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -152,11 +127,11 @@
             <div class="row g-3">
                 <div class="col-md-3">
                     <label class="form-label">Totala Timmar</label>
-                    <input type="number" id="totalHours" class="form-control" readonly>
+                    <input type="number" id="totalHours" class="form-control" asp-for="Summary.TotalHours">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Total Pris</label>
-                    <input type="number" id="totalPrice" class="form-control" readonly>
+                    <input type="number" id="totalPrice" class="form-control" asp-for="Summary.TotalPrice">
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Anteckningar</label>
@@ -166,7 +141,6 @@
         </div>
 
 
-
         <div class="mt-4 d-flex justify-content-end gap-3">
             <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Avbryt</a>
             <button type="submit" class="btn btn-success">Spara</button>
@@ -174,91 +148,110 @@
     </form>
 </div>
 
-<!-- ✅ JavaScript Sektion: Hantera beställningar och sammanställning -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        const totalHoursField = document.getElementById("totalHours");
+        const totalPriceField = document.getElementById("totalPrice");
 
-        function updateSummary() {
+        // Förhindra manuell inmatning och ändring
+        const preventEdit = (event) => event.preventDefault();
+
+        totalHoursField.addEventListener("keydown", preventEdit);
+        totalHoursField.addEventListener("paste", preventEdit);
+        totalHoursField.addEventListener("mousedown", preventEdit);
+
+        totalPriceField.addEventListener("keydown", preventEdit);
+        totalPriceField.addEventListener("paste", preventEdit);
+        totalPriceField.addEventListener("mousedown", preventEdit);
+
+        // Sammanställning av beställningar
+        const updateSummary = () => {
             let totalHours = 0;
             let totalPrice = 0;
 
             document.querySelectorAll("#orderList li").forEach(order => {
                 const match = order.dataset.orderInfo.match(/(\d+\.\d{2}|\d+) timmar x (\d+\.\d{2}|\d+) kr\/timme = (\d+\.\d{2}|\d+) kr/);
-
                 if (match) {
                     totalHours += parseFloat(match[1]);
                     totalPrice += parseFloat(match[3]);
                 }
             });
 
-            document.getElementById("totalHours").value = totalHours.toFixed(2);
-            document.getElementById("totalPrice").value = totalPrice.toFixed(2);
-        }
+            console.log("Updating summary: Total Hours:", totalHours, "Total Price:", totalPrice);
 
-        function validateFields() {
+            totalHours = Math.round(totalHours); //Viktig för att asp-for ska funka för hours då den skickar xx.xx
+
+
+            // Uppdatera textfälten (som användaren inte kan ändra)
+            totalHoursField.value = totalHours.toFixed(2);
+            totalPriceField.value = totalPrice.toFixed(2);
+        };
+
+        const validateFields = () => {
             let isValid = true;
+            const service = document.getElementById("orderService").value;
+            const customer = document.getElementById("orderCustomer").value;
+            const hours = parseFloat(document.getElementById("orderHours").value.trim());
+            const pricePerHour = parseFloat(document.getElementById("orderPricePerHour").value.trim());
 
-            const serviceSelect = document.getElementById("orderService");
-            const customerSelect = document.getElementById("orderCustomer");
-            const hoursInput = document.getElementById("orderHours");
-            const priceInput = document.getElementById("orderPricePerHour");
+            console.log("Validating fields:", { service, customer, hours, pricePerHour });
 
-            const service = serviceSelect.value;
-            const customer = customerSelect.value;
-            const hours = parseFloat(hoursInput.value.trim());
-            const pricePerHour = parseFloat(priceInput.value.trim());
-
-            if (!service || serviceSelect.options[serviceSelect.selectedIndex].text === "Don't exist any") {
-                document.getElementById("orderServiceError").classList.remove("d-none");
-                isValid = false;
-            } else {
-                document.getElementById("orderServiceError").classList.add("d-none");
-            }
-
-            if (!customer || customerSelect.options[customerSelect.selectedIndex].text === "Don't exist any") {
-                document.getElementById("orderCustomerError").classList.remove("d-none");
-                isValid = false;
-            } else {
-                document.getElementById("orderCustomerError").classList.add("d-none");
-            }
-
+            document.getElementById("orderServiceError").classList.toggle("d-none", !!service);
+            document.getElementById("orderCustomerError").classList.toggle("d-none", !!customer);
             document.getElementById("orderHoursError").classList.toggle("d-none", !isNaN(hours) && hours > 0);
             document.getElementById("orderPriceError").classList.toggle("d-none", !isNaN(pricePerHour) && pricePerHour > 0);
 
-            return isValid && !isNaN(hours) && hours > 0 && !isNaN(pricePerHour) && pricePerHour > 0;
-        }
+            isValid = !!service && !!customer && !isNaN(hours) && hours > 0 && !isNaN(pricePerHour) && pricePerHour > 0;
+            console.log("Validation result:", isValid);
+            return isValid;
+        };
 
         document.getElementById("saveOrder").addEventListener("click", function () {
-            if (!validateFields()) return;
+            console.log("Save Order button clicked!");
 
-            const serviceSelect = document.getElementById("orderService");
-            const customerSelect = document.getElementById("orderCustomer");
-            let hours = parseFloat(document.getElementById("orderHours").value.trim()).toFixed(2);
-            let pricePerHour = parseFloat(document.getElementById("orderPricePerHour").value.trim()).toFixed(2);
+            if (!validateFields()) {
+                console.log("Validation failed! Order not added.");
+                return;
+            }
 
+            const service = document.getElementById("orderService");
+            const customer = document.getElementById("orderCustomer");
+            const hours = parseFloat(document.getElementById("orderHours").value.trim()).toFixed(2);
+            const pricePerHour = parseFloat(document.getElementById("orderPricePerHour").value.trim()).toFixed(2);
             const totalPrice = (hours * pricePerHour).toFixed(2);
-            const orderList = document.getElementById("orderList");
 
+            console.log("Adding order:", { service: service.value, customer: customer.value, hours, pricePerHour, totalPrice });
+
+            const orderList = document.getElementById("orderList");
             const listItem = document.createElement("li");
             listItem.className = "list-group-item d-flex justify-content-between align-items-center";
             listItem.dataset.orderInfo = `${hours} timmar x ${pricePerHour} kr/timme = ${totalPrice} kr`;
             listItem.innerHTML = `
-                <div><strong>${serviceSelect.options[serviceSelect.selectedIndex].text}</strong> - ${hours} timmar x ${pricePerHour} kr/timme =
-                <strong>${totalPrice} kr</strong><br><small>Kund: ${customerSelect.options[customerSelect.selectedIndex].text}</small></div>
+                <div><strong>${service.options[service.selectedIndex].text}</strong> - ${hours} timmar x ${pricePerHour} kr/timme = <strong>${totalPrice} kr</strong><br><small>Kund: ${customer.options[customer.selectedIndex].text}</small></div>
                 <button type="button" class="btn btn-danger btn-sm remove-order">Ta bort</button>`;
-
             orderList.appendChild(listItem);
+
             updateSummary();
 
-            bootstrap.Modal.getInstance(document.getElementById("createOrderModal"))?.hide();
+            // Stäng modalen på ett säkert sätt
+            try {
+                const modal = bootstrap.Modal.getInstance(document.getElementById("createOrderModal"));
+                if (modal) modal.hide();
+                console.log("Modal closed successfully.");
+            } catch (error) {
+                console.error("Error closing modal:", error);
+            }
         });
 
         document.getElementById("orderList").addEventListener("click", function (e) {
             if (e.target.classList.contains("remove-order")) {
+                console.log("Removing order:", e.target.closest("li").dataset.orderInfo);
                 e.target.closest("li").remove();
                 updateSummary();
             }
         });
     });
 
+
 </script>
+

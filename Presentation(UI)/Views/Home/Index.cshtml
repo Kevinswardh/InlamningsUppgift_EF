@@ -1,48 +1,38 @@
-﻿@{
-    ViewData["Title"] = "My Page";
-}
+﻿@model List<Presentation_UI_.ViewModels.ProjectViewModel>
 
 <div class="container mt-5">
-    <!-- Header Section -->
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1 class="h1">Header Title</h1>
-
-        <!-- Länk till CreatePage -->
+        <h1 class="h1">Projektlista</h1>
         <a asp-controller="CreatePage" asp-action="Index" class="btn btn-primary">
-            <i class="bi bi-plus"></i> Add Item
+            <i class="bi bi-plus"></i> Lägg till projekt
         </a>
     </div>
 
-    <!-- List Section -->
-    <ul style="margin-bottom: 50vh;" class="list-group">
-        <!-- List Item -->
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-            <div>
-                <h5 class="mb-1">Title 1</h5>
-                <p class="mb-0 text-muted">Description 1</p>
-            </div>
-            <a asp-controller="ProjectPage" asp-action="Index" class="btn btn-outline-primary">Öppna</a>
-        </li>
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-            <div>
-                <h5 class="mb-1">Title 2</h5>
-                <p class="mb-0 text-muted">Description 2</p>
-            </div>
-            <a asp-controller="ProjectPage" asp-action="Index" class="btn btn-outline-primary">Öppna</a>
-        </li>
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-            <div>
-                <h5 class="mb-1">Title 3</h5>
-                <p class="mb-0 text-muted">Description 3</p>
-            </div>
-            <a asp-controller="ProjectPage" asp-action="Index" class="btn btn-outline-primary">Öppna</a>
-        </li>
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-            <div>
-                <h5 class="mb-1">Title 4</h5>
-                <p class="mb-0 text-muted">Description 4</p>
-            </div>
-            <a asp-controller="ProjectPage" asp-action="Index" class="btn btn-outline-primary">Öppna</a>
-        </li>
+    <ul class="list-group">
+        @foreach (var project in Model)
+        {
+            <li class="list-group-item">
+                <div class="d-flex justify-content-between align-items-start">
+                    <!-- Information Section -->
+                    <div>
+                        <h5>@project.ProjectNumber - @project.Description</h5>
+                        <p class="mb-1">
+                            <strong>Startdatum:</strong> @(project.StartDate != default(DateTime) ? project.StartDate.ToString("yyyy-MM-dd") : "Ej satt")<br>
+                            <strong>Slutdatum:</strong> @(project.EndDate.HasValue ? project.EndDate.Value.ToString("yyyy-MM-dd") : "Ej satt")<br>
+                            <strong>Status:</strong> @(string.IsNullOrEmpty(project.Status) ? "Ej satt" : project.Status)<br>
+                            <strong>Projektledare:</strong> @(project.ProjectLeaders?.FirstOrDefault(pl => pl.ProjectLeaderID == project.ProjectLeaderID)?.Name ?? "Ej tilldelad")<br>
+                            <strong>Totala timmar:</strong> @(project.Summary?.TotalHours ?? 0)<br>
+                            <strong>Total pris:</strong> @(project.Summary?.TotalPrice.ToString("C") ?? "0 kr")<br>
+                            <strong>Anteckningar:</strong> @(project.Summary != null && !string.IsNullOrEmpty(project.Summary.Notes) ? project.Summary.Notes : "Inga anteckningar")
+                        </p>
+                    </div>
+
+                    <!-- Button Section -->
+                    <div>
+                        <a asp-controller="ProjectPage" asp-action="Index" asp-route-id="@project.ProjectID" class="btn btn-outline-primary">Öppna</a>
+                    </div>
+                </div>
+            </li>
+        }
     </ul>
 </div>
