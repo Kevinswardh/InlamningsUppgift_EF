@@ -33,6 +33,7 @@ namespace Presentation_UI_.Controllers
                 EndDate = p.EndDate,
                 Status = p.Status,
                 ProjectLeaderID = p.ProjectLeaderID,
+                ProjectLeaderName = p.ProjectLeaderName, // Lägg till detta för projektledarens namn
                 Summary = p.Summary != null ? new SummaryViewModel
                 {
                     SummaryID = p.Summary.SummaryID,
@@ -40,12 +41,20 @@ namespace Presentation_UI_.Controllers
                     TotalHours = p.Summary.TotalHours,
                     TotalPrice = p.Summary.TotalPrice,
                     Notes = p.Summary.Notes
-                } : null
+                } : null,
+                Orders = p.Orders?.Select(o => new OrderViewModel
+                {
+                    CustomerID = o.CustomerID,
+                    ServiceID = o.ServiceID,
+                    Hours = o.Hours,
+                    Price = o.Price
+                }).ToList() ?? new List<OrderViewModel>()
             }).ToList();
-
 
             return View(model);
         }
+
+
 
 
         public IActionResult Privacy()

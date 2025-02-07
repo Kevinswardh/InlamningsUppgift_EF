@@ -58,12 +58,13 @@ namespace Business.Services
                 EndDate = p.EndDate,
                 Status = p.Status,
                 ProjectLeaderID = p.ProjectLeaderID,
+                ProjectLeaderName = p.ProjectLeader?.Name ?? "Ej tilldelad", // Lägg till detta
                 Summary = p.Summary != null ? new SummaryDTO
                 {
                     SummaryID = p.Summary.SummaryID,
                     ProjectID = p.Summary.ProjectID,
-                    TotalHours = p.Summary.TotalHours ?? 0, // Om null, använd 0 som fallback
-                    TotalPrice = p.Summary.TotalPrice ?? 0m, // Om null, använd 0.0m som fallback
+                    TotalHours = p.Summary.TotalHours ?? 0,
+                    TotalPrice = p.Summary.TotalPrice ?? 0m,
                     Notes = p.Summary.Notes
                 } : null,
                 Orders = p.Orders?.Select(o => new OrderDTO
@@ -73,7 +74,7 @@ namespace Business.Services
                     ProjectID = o.ProjectID,
                     Hours = o.Hours,
                     Price = o.Price
-                }).ToList() ?? new List<OrderDTO>() // Om Orders är null, använd en tom lista
+                }).ToList() ?? new List<OrderDTO>()
             }).ToList();
         }
 

@@ -20,7 +20,7 @@
                             <strong>Startdatum:</strong> @(project.StartDate != default(DateTime) ? project.StartDate.ToString("yyyy-MM-dd") : "Ej satt")<br>
                             <strong>Slutdatum:</strong> @(project.EndDate.HasValue ? project.EndDate.Value.ToString("yyyy-MM-dd") : "Ej satt")<br>
                             <strong>Status:</strong> @(string.IsNullOrEmpty(project.Status) ? "Ej satt" : project.Status)<br>
-                            <strong>Projektledare:</strong> @(project.ProjectLeaders?.FirstOrDefault(pl => pl.ProjectLeaderID == project.ProjectLeaderID)?.Name ?? "Ej tilldelad")<br>
+                            <strong>Projektledare:</strong> @(string.IsNullOrEmpty(project.ProjectLeaderName) ? "Ej tilldelad" : project.ProjectLeaderName)<br>
                             <strong>Totala timmar:</strong> @(project.Summary?.TotalHours ?? 0)<br>
                             <strong>Total pris:</strong> @(project.Summary?.TotalPrice.ToString("C") ?? "0 kr")<br>
                             <strong>Anteckningar:</strong> @(project.Summary != null && !string.IsNullOrEmpty(project.Summary.Notes) ? project.Summary.Notes : "Inga anteckningar")

@@ -31,4 +31,5 @@ namespace Data.Entities
         public Summary Summary { get; set; }
     }
 
+
 }

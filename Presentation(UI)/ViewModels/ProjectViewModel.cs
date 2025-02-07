@@ -9,6 +9,7 @@
         public DateTime? EndDate { get; set; }
         public string Status { get; set; }
         public int ProjectLeaderID { get; set; }
+        public string ProjectLeaderName { get; set; } // Lägg till detta
 
         // Lista av ProjectLeaderViewModel för dropdown i vyn
         public List<ProjectLeaderViewModel> ProjectLeaders { get; set; } = new List<ProjectLeaderViewModel>();
