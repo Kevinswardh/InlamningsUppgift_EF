@@ -11,8 +11,6 @@
         public decimal Price { get; set; }
         public decimal TotalPrice => Hours * Price;
 
-        // Navigation Properties
-        public CustomerViewModel Customer { get; set; }
-        public ServiceViewModel Service { get; set; }
+
     }
 }

@@ -59,24 +59,71 @@ namespace Presentation_UI_.Controllers
             return View(model);
         }
 
-        // POST: /CreatePage/Save
         [HttpPost]
         public async Task<IActionResult> Save(ProjectCreateViewModel model)
         {
             _logger.LogInformation("Save()-metoden anropades.");
-            _logger.LogInformation($"Mottagna värden -> TotalHours: {model.Summary?.TotalHours}, TotalPrice: {model.Summary?.TotalPrice}");
 
-            if (!ModelState.IsValid)
+            // 🔍 **Validering av projektinfo**
+            if (string.IsNullOrWhiteSpace(model.Description))
             {
-                _logger.LogWarning("ModelState är ogiltig. Här är felen:");
-                foreach (var error in ModelState)
+                ModelState.AddModelError("Description", "Benämning är obligatorisk.");
+            }
+
+            if (model.StartDate == default)
+            {
+                ModelState.AddModelError("StartDate", "Startdatum är obligatoriskt.");
+            }
+
+            if (string.IsNullOrWhiteSpace(model.Status))
+            {
+                ModelState.AddModelError("Status", "Status är obligatoriskt.");
+            }
+
+            if (model.ProjectLeaderID == 0)
+            {
+                ModelState.AddModelError("ProjectLeaderID", "Välj en giltig projektledare.");
+            }
+
+            // 🔍 **Validering av beställningar**
+            if (model.Orders == null || !model.Orders.Any())
+            {
+                ModelState.AddModelError("Orders", "Minst en beställning krävs.");
+            }
+            else
+            {
+                for (int i = 0; i < model.Orders.Count; i++)
                 {
-                    foreach (var subError in error.Value.Errors)
+                    var order = model.Orders[i];
+
+                    if (order.CustomerID == 0)
                     {
-                        _logger.LogWarning($"Fält: {error.Key}, Fel: {subError.ErrorMessage}");
+                        ModelState.AddModelError($"Orders[{i}].CustomerID", "Välj en giltig kund.");
+                    }
+
+                    if (order.ServiceID == 0)
+                    {
+                        ModelState.AddModelError($"Orders[{i}].ServiceID", "Välj en giltig tjänst.");
+                    }
+
+                    if (order.Hours <= 0)
+                    {
+                        ModelState.AddModelError($"Orders[{i}].Hours", "Timmar måste vara större än 0.");
+                    }
+
+                    if (order.Price <= 0)
+                    {
+                        ModelState.AddModelError($"Orders[{i}].Price", "Pris per timme måste vara större än 0.");
                     }
                 }
+            }
 
+            // Om det finns valideringsfel, returnera vyn med ModelState
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("ModelState är ogiltig, returnerar vy med felmeddelanden.");
+
+                // Ladda om listor för dropdown-menyer
                 var projectLeaders = await _projectService.GetAllProjectLeadersAsync();
                 var services = await _projectService.GetAllServicesAsync();
                 var customers = await _projectService.GetAllCustomersAsync();
@@ -99,10 +146,10 @@ namespace Presentation_UI_.Controllers
                     CustomerName = c.CustomerName
                 }).ToList();
 
-                _logger.LogWarning("Returnerar vy med ogiltig ModelState.");
                 return View("Index", model);
             }
 
+            // ✅ **Om valideringen passerar, skapa DTO och spara i databasen**
             _logger.LogInformation("ModelState är giltig. Skapar ProjectDTO.");
 
             var projectDto = new ProjectDTO
@@ -123,19 +170,18 @@ namespace Presentation_UI_.Controllers
                 }).ToList(),
                 Summary = new SummaryDTO
                 {
-                    TotalHours = (int)(model.Summary?.TotalHours ?? 0), // Omvandlar till heltal
+                    TotalHours = (int)(model.Summary?.TotalHours ?? 0),
                     TotalPrice = model.Summary?.TotalPrice ?? 0,
                     Notes = model.Summary?.Notes
                 }
             };
-
-            _logger.LogInformation($"DTO skapad -> TotalHours: {projectDto.Summary.TotalHours}, TotalPrice: {projectDto.Summary.TotalPrice}");
 
             await _projectService.CreateProjectAsync(projectDto);
 
             _logger.LogInformation("Projektet har sparats i databasen. Omdirigerar till Home.");
             return RedirectToAction("Index", "Home");
         }
+
 
         [HttpGet]
         public IActionResult Cancel()
