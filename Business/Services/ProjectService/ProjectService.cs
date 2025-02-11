@@ -2,6 +2,8 @@
 using Business.Factories;
 using Data.DatabaseRepository;
 using Data.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,11 +14,12 @@ namespace Business.Services
     {
         private readonly IProjectRepository _projectRepository;
         private readonly IBaseRepository<ProjectLeader> _projectLeaderRepository;
-
-        public ProjectService(IProjectRepository projectRepository, IBaseRepository<ProjectLeader> projectLeaderRepository)
+        private readonly ILogger<ProjectService> _logger;
+        public ProjectService(IProjectRepository projectRepository, IBaseRepository<ProjectLeader> projectLeaderRepository, ILogger<ProjectService> logger)
         {
             _projectRepository = projectRepository;
             _projectLeaderRepository = projectLeaderRepository;
+            _logger = logger;
         }
 
         /// <summary>
@@ -85,11 +88,12 @@ namespace Business.Services
 
 
         /// <summary>
-        /// Hämtar ett projekt baserat på dess ID.
+        /// Hämtar ett projekt baserat på dess ID från ProjectRepository.
         /// </summary>
         public async Task<ProjectDTO> GetProjectByIdAsync(int id)
         {
-            var project = await _projectRepository.GetSingleAsync(p => p.ProjectID == id);
+            var project = await _projectRepository.GetProjectByIdWithDetailsAsync(id);
+
             if (project == null)
                 throw new KeyNotFoundException("Projektet hittades inte.");
 
@@ -101,7 +105,26 @@ namespace Business.Services
                 StartDate = project.StartDate,
                 EndDate = project.EndDate,
                 Status = project.Status,
-                ProjectLeaderID = project.ProjectLeaderID
+                ProjectLeaderID = project.ProjectLeaderID,
+                ProjectLeaderName = project.ProjectLeader?.Name ?? "Ej tilldelad",
+
+                Orders = project.Orders.Select(o => new OrderDTO
+                {
+                    ProjectID = o.ProjectID,
+                    CustomerID = o.CustomerID,
+                    ServiceID = o.ServiceID,
+                    CustomerName = o.Customer.CustomerName ?? "Okänd kund",
+                    ServiceName = o.Service.ServiceName ?? "Okänd tjänst",
+                    Hours = o.Hours,
+                    Price = o.Price
+                }).ToList(),
+                Summary = project.Summary != null ? new SummaryDTO
+                {
+                    TotalHours = project.Summary.TotalHours ?? 0m,  // ✅ Om null, sätt till 0
+                    TotalPrice = project.Summary.TotalPrice ?? 0m,  // ✅ Om null, sätt till 0
+                    Notes = project.Summary.Notes ?? "Inga anteckningar"
+                } : new SummaryDTO(),
+
             };
         }
 
@@ -110,10 +133,19 @@ namespace Business.Services
         /// </summary>
         public async Task UpdateProjectAsync(ProjectDTO projectDto)
         {
-            var project = await _projectRepository.GetSingleAsync(p => p.ProjectID == projectDto.ProjectID);
-            if (project == null)
-                throw new KeyNotFoundException("Projektet hittades inte.");
+            // Hämta projektet från databasen baserat på ID och inkludera Orders och deras Services
+            var project = await _projectRepository.GetProjectByIdWithDetailsAsync(projectDto.ProjectID);
 
+            if (project == null)
+            {
+                _logger.LogError("Projekt med ID: {ProjectId} hittades inte.", projectDto.ProjectID);
+                throw new KeyNotFoundException("Projektet hittades inte.");
+            }
+
+            // Logga innan uppdatering
+            _logger.LogInformation("Uppdaterar projekt med ID: {ProjectId} med nya värden.", projectDto.ProjectID);
+
+            // Mappa in projektets data från DTO:n
             project.ProjectNumber = projectDto.ProjectNumber;
             project.Description = projectDto.Description;
             project.StartDate = projectDto.StartDate;
@@ -121,8 +153,92 @@ namespace Business.Services
             project.Status = projectDto.Status;
             project.ProjectLeaderID = projectDto.ProjectLeaderID;
 
+            // 🔴 **Steg 1: Hitta ordrar som ska tas bort**
+            var ordersToDelete = project.Orders
+                .Where(existingOrder => !projectDto.Orders.Any(o =>
+                    o.CustomerID == existingOrder.CustomerID &&
+                    o.ServiceID == existingOrder.ServiceID))
+                .ToList();
+
+            foreach (var order in ordersToDelete)
+            {
+                _logger.LogInformation("Tar bort order med ServiceID: {ServiceID} och CustomerID: {CustomerID}", order.ServiceID, order.CustomerID);
+                await _projectRepository.DeleteOrderAsync(order); // ✅ Ny metod i ProjectRepository
+            }
+
+            // 🟢 **Steg 2: Uppdatera befintliga ordrar**
+            foreach (var orderDto in projectDto.Orders)
+            {
+                var order = project.Orders.FirstOrDefault(o => o.CustomerID == orderDto.CustomerID && o.ServiceID == orderDto.ServiceID);
+
+                if (order != null)
+                {
+                    // Om ordern finns, uppdatera
+                    order.Hours = orderDto.Hours;
+                    order.Price = orderDto.Price;
+
+                    // ✅ Uppdatera ServiceName från navigationspropertyn (om den redan är laddad)
+                    if (order.Service != null)
+                    {
+                        order.Service.ServiceName = orderDto.ServiceName;
+                    }
+                }
+                else
+                {
+                    // 🟢 **Steg 3: Skapa en ny order och koppla rätt Service-objekt**
+                    var service = project.Orders.Select(o => o.Service).FirstOrDefault(s => s.ServiceID == orderDto.ServiceID)
+                          ?? (await _projectRepository.GetAllServicesAsync()).FirstOrDefault(s => s.ServiceID == orderDto.ServiceID);
+
+                    if (service == null)
+                    {
+                        _logger.LogError("Service med ID {ServiceID} hittades inte.", orderDto.ServiceID);
+                        throw new KeyNotFoundException($"Service med ID {orderDto.ServiceID} hittades inte.");
+                    }
+
+                    var newOrder = new Order
+                    {
+                        ProjectID = project.ProjectID,
+                        CustomerID = orderDto.CustomerID,
+                        ServiceID = orderDto.ServiceID,
+                        Hours = orderDto.Hours,
+                        Price = orderDto.Price,
+                        Service = service // ✅ Koppla rätt Service-objekt
+                    };
+
+                    project.Orders.Add(newOrder);
+                }
+            }
+
+            // 🔵 **Steg 4: Uppdatera Summary (om det finns några förändringar)**
+            if (projectDto.Summary != null)
+            {
+                if (project.Summary != null)
+                {
+                    project.Summary.TotalHours = projectDto.Summary.TotalHours;
+                    project.Summary.TotalPrice = projectDto.Summary.TotalPrice;
+                    project.Summary.Notes = projectDto.Summary.Notes;
+                }
+                else
+                {
+                    project.Summary = new Summary
+                    {
+                        ProjectID = project.ProjectID,
+                        TotalHours = projectDto.Summary.TotalHours,
+                        TotalPrice = projectDto.Summary.TotalPrice,
+                        Notes = projectDto.Summary.Notes
+                    };
+                }
+            }
+
+            // 🔥 **Spara uppdateringar**
             await _projectRepository.UpdateAsync(project);
+
+            // Logga efter uppdatering
+            _logger.LogInformation("Projekt med ID: {ProjectId} uppdaterades framgångsrikt.", projectDto.ProjectID);
         }
+
+
+
 
         /// <summary>
         /// Tar bort ett projekt baserat på dess ID.

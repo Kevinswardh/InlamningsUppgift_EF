@@ -37,60 +37,91 @@ namespace Data.Database
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Composite Key for Order
+            // ✅ **Sammansatt primärnyckel för Orders**
             modelBuilder.Entity<Order>()
-                .HasKey(o => new { o.CustomerID, o.ServiceID });
+                .HasKey(o => new { o.ProjectID, o.CustomerID, o.ServiceID });
 
-            // ProjectLeader Primary Key
-            modelBuilder.Entity<ProjectLeader>()
-                .Property(pl => pl.ProjectLeaderID)
-                .ValueGeneratedOnAdd();
+            // 🔹 **Relation mellan Order och Project**
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.Project)
+                .WithMany(p => p.Orders)
+                .HasForeignKey(o => o.ProjectID)
+                .OnDelete(DeleteBehavior.Cascade);
 
-            // Project Primary Key
+            // 🔹 **Relation mellan Order och Customer**
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.Customer)
+                .WithMany(c => c.Orders)
+                .HasForeignKey(o => o.CustomerID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // 🔹 **Relation mellan Order och Service**
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.Service)
+                .WithMany(s => s.Orders)
+                .HasForeignKey(o => o.ServiceID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // 🔹 **Primärnyckel för Project**
             modelBuilder.Entity<Project>()
                 .Property(p => p.ProjectID)
                 .ValueGeneratedOnAdd();
 
-            // Customer Primary Key
-            modelBuilder.Entity<Customer>()
-                .Property(c => c.CustomerID)
-                .ValueGeneratedOnAdd();
-
-            // Service Primary Key
-            modelBuilder.Entity<Service>()
-                .Property(s => s.ServiceID)
-                .ValueGeneratedOnAdd();
-
-            // Summary Primary Key
-            modelBuilder.Entity<Summary>()
-                .Property(s => s.SummaryID)
-                .ValueGeneratedOnAdd();
-
-            // Relationships
+            // 🔹 **Relation mellan Project och ProjectLeader**
             modelBuilder.Entity<Project>()
                 .HasOne(p => p.ProjectLeader)
                 .WithMany(pl => pl.Projects)
                 .HasForeignKey(p => p.ProjectLeaderID);
 
-            modelBuilder.Entity<Order>()
-                .HasOne(o => o.Customer)
-                .WithMany(c => c.Orders)
-                .HasForeignKey(o => o.CustomerID);
+            // 🔹 **Primärnyckel för ProjectLeader**
+            modelBuilder.Entity<ProjectLeader>()
+                .Property(pl => pl.ProjectLeaderID)
+                .ValueGeneratedOnAdd();
 
-            modelBuilder.Entity<Order>()
-                .HasOne(o => o.Service)
-                .WithMany(s => s.Orders)
-                .HasForeignKey(o => o.ServiceID);
+            // 🔹 **Primärnyckel för Customer**
+            modelBuilder.Entity<Customer>()
+                .Property(c => c.CustomerID)
+                .ValueGeneratedOnAdd();
 
-            modelBuilder.Entity<Order>()
-                .HasOne(o => o.Project)
-                .WithMany(p => p.Orders)
-                .HasForeignKey(o => o.ProjectID);
+            // 🔹 **Primärnyckel för Service**
+            modelBuilder.Entity<Service>()
+                .Property(s => s.ServiceID)
+                .ValueGeneratedOnAdd();
 
+            // 🔹 **Primärnyckel för Summary**
+            modelBuilder.Entity<Summary>()
+                .Property(s => s.SummaryID)
+                .ValueGeneratedOnAdd();
+
+            // 🔹 **Relation mellan Summary och Project**
             modelBuilder.Entity<Summary>()
                 .HasOne(s => s.Project)
                 .WithOne(p => p.Summary)
-                .HasForeignKey<Summary>(s => s.ProjectID);
+                .HasForeignKey<Summary>(s => s.ProjectID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // ✅ **Fix för decimalprecision**
+            modelBuilder.Entity<Customer>()
+                .Property(c => c.Discount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Order>()
+                .Property(o => o.Hours)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Order>()
+                .Property(o => o.Price)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Summary>()
+                .Property(s => s.TotalHours)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Summary>()
+                .Property(s => s.TotalPrice)
+                .HasPrecision(18, 2);
         }
+
+
     }
 }

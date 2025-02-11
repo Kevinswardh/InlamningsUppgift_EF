@@ -1,238 +1,365 @@
-﻿@{
+﻿@model Presentation_UI_.ViewModels.ProjectCreateViewModel
+
+@{
     ViewData["Title"] = "Redigera Projekt";
 }
 
 <div class="container mt-5">
     <h2 class="mb-4">Redigera Projekt</h2>
 
-    
-        <!-- 📌 Sektion: Projektinfo -->
+    <form method="post" asp-action="SaveEdit">
+        <input type="hidden" asp-for="ProjectID" />
+
+        <!-- 📌 SECTION 1: PROJEKTINFO -->
         <div class="border p-3 mb-4">
             <h4 class="mb-3">Projektinfo</h4>
             <div class="row g-3">
                 <div class="col-md-3">
                     <label class="form-label">Projektnr</label>
-                    <input type="text" class="form-control" id="projectNumber" name="ProjectNumber" value="P-101" readonly>
+                    <input type="text" class="form-control" asp-for="ProjectNumber" readonly>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Benämning</label>
-                    <input type="text" class="form-control" id="projectName" name="ProjectName" value="Städa mattan" required>
+                    <input type="text" class="form-control" asp-for="Description" required>
+                    <span asp-validation-for="Description" class="text-danger"></span>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Startdatum</label>
-                    <input type="date" class="form-control" id="startDate" name="StartDate" value="2025-02-10" required>
+                    <input type="date" class="form-control" asp-for="StartDate" required>
+                    <span asp-validation-for="StartDate" class="text-danger"></span>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Slutdatum</label>
-                    <input type="date" class="form-control" id="endDate" name="EndDate" value="2025-02-15">
+                    <input type="date" class="form-control" asp-for="EndDate">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Status</label>
-                    <select class="form-select" id="status" name="Status">
-                        <option>Pågår</option>
-                        <option>Avslutat</option>
-                        <option>Planerat</option>
+                    <select class="form-select" asp-for="Status" asp-items="@(new SelectList(new List<string> { "Planerat", "Pågår", "Avslutat" }, Model.Status))">
                     </select>
+                    <span asp-validation-for="Status" class="text-danger"></span>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Projektledare</label>
-                    <div class="d-flex gap-2 align-items-center">
-                        <select class="form-select flex-grow-1" id="projectLeader" name="ProjectLeader">
-                            <option>Anna Andersson</option>
-                            <option>Johan Karlsson</option>
-                            <option>Maria Svensson</option>
-                            <option>Oskar Johansson</option>
-                        </select>
-                        <button type="button" class="btn btn-secondary" style="width: 150px;" data-bs-toggle="modal" data-bs-target="#createProjectLeaderModal">
-                            Skapa ny
-                        </button>
-                    </div>
+                    @if (Model.ProjectLeaders != null && Model.ProjectLeaders.Any())
+                    {
+                        <select class="form-select" asp-for="ProjectLeaderID" asp-items="@(new SelectList(Model.ProjectLeaders, "ProjectLeaderID", "Name"))"></select>
+                    }
+                    else
+                    {
+                        <p class="text-danger">Kontakta Admin - inga projektledare tillgängliga.</p>
+                    }
+                    <span asp-validation-for="ProjectLeaderID" class="text-danger"></span>
                 </div>
             </div>
         </div>
 
-        <!-- ✅ Modal för att skapa ny projektledare -->
-        <div class="modal fade" id="createProjectLeaderModal">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Skapa ny projektledare</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <input type="text" class="form-control mb-2" id="newProjectLeaderFirstName" placeholder="Förnamn">
-                        <input type="text" class="form-control mb-2" id="newProjectLeaderLastName" placeholder="Efternamn">
-                        <button class="btn btn-primary mt-2" id="saveProjectLeader">Lägg till</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 📌 Sektion: Beställningar -->
+        <!-- 📌 SECTION 2: BESTÄLLNING -->
         <div class="border p-3 mb-4">
             <div class="d-flex justify-content-between align-items-center">
                 <h4 class="mb-3">Beställningar</h4>
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#createOrderModal">Skapa ny beställning</button>
+                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createOrderModal">
+                    Skapa ny beställning
+                </button>
             </div>
 
-            <!-- Lista över befintliga beställningar -->
             <ul class="list-group mt-3" id="orderList">
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                        <strong>Ny matta</strong> - 123 timmar x 123 kr/timme = <strong>15129 kr</strong>
-                        <br><small>Kund: Företag A</small>
-                    </div>
-                    <button type="button" class="btn btn-danger btn-sm remove-order">Ta bort</button>
-                </li>
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                        <strong>Städa mattan</strong> - 456 timmar x 123 kr/timme = <strong>56088 kr</strong>
-                        <br><small>Kund: Företag B</small>
-                    </div>
-                    <button type="button" class="btn btn-danger btn-sm remove-order">Ta bort</button>
-                </li>
+                @if (Model.Orders != null && Model.Orders.Any())
+                {
+                    @for (int i = 0; i < Model.Orders.Count; i++)
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center" data-order-id="@Model.Orders[i].ServiceID">
+                            <div>
+                                <strong>@Model.Orders[i].ServiceName</strong> - @Model.Orders[i].Hours timmar x @Model.Orders[i].Price kr/timme =
+                                <strong>@(Model.Orders[i].Hours * Model.Orders[i].Price) kr</strong>
+                                <br><small>Kund: @Model.Orders[i].CustomerName</small>
+                            </div>
+                            <button type="button" class="btn btn-danger btn-sm remove-order">Ta bort</button>
+
+                            <!-- Dolda input-fält för att säkerställa att beställningen skickas till servern -->
+                            <input type="hidden" name="Orders[@i].ServiceID" value="@Model.Orders[i].ServiceID" />
+                            <input type="hidden" name="Orders[@i].CustomerID" value="@Model.Orders[i].CustomerID" />
+                            <input type="hidden" name="Orders[@i].Hours" value="@Model.Orders[i].Hours" />
+                            <input type="hidden" name="Orders[@i].Price" value="@Model.Orders[i].Price" />
+                            <input type="hidden" name="Orders[@i].ServiceName" value="@Model.Orders[i].ServiceName" />
+                            <input type="hidden" name="Orders[@i].CustomerName" value="@Model.Orders[i].CustomerName" />
+                        </li>
+                    }
+                }
             </ul>
+
+
+            <!-- 🔴 Felmeddelanden visas här om ingen beställning har lagts till -->
+            @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ContainsKey("Orders"))
+            {
+                <div class="text-danger mt-2">
+                    @Html.ValidationMessage("Orders")
+                </div>
+            }
         </div>
 
-    <!-- ✅ Modal för att skapa ny beställning -->
-    <div class="modal fade" id="createOrderModal">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Skapa ny beställning</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <!-- Dropdown för Tjänst -->
-                    <label class="form-label">Tjänst</label>
-                    <select class="form-select mb-2" id="orderService">
-                        <option value="Städning">Städning</option>
-                        <option value="Fönsterputs">Fönsterputs</option>
-                        <option value="Gräsklippning">Gräsklippning</option>
-                        <option value="Snöröjning">Snöröjning</option>
-                    </select>
-
-                    <!-- Fält för timmar -->
-                    <label class="form-label">Timmar</label>
-                    <input type="number" class="form-control mb-2" id="orderHours" placeholder="Antal timmar">
-
-                    <!-- Fält för pris per timme -->
-                    <label class="form-label">Pris per timme</label>
-                    <input type="number" class="form-control mb-2" id="orderPricePerHour" placeholder="Pris per timme">
-
-                    <!-- Dropdown för Kund -->
-                    <label class="form-label">Kund</label>
-                    <select class="form-select mb-2" id="orderCustomer">
-                        <option value="Företag A">Företag A</option>
-                        <option value="Företag B">Företag B</option>
-                        <option value="Företag C">Företag C</option>
-                        <option value="Företag D">Företag D</option>
-                    </select>
-
-                    <!-- Spara-knapp -->
-                    <button class="btn btn-primary mt-2" id="saveOrder">Lägg till beställning</button>
+        <!-- Modal för ny beställning -->
+        <div class="modal fade" id="createOrderModal" tabindex="-1" aria-labelledby="createOrderModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="createOrderModalLabel">Skapa Ny Beställning</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Tjänst</label>
+                            <select id="orderService" class="form-select">
+                                @if (Model.Services != null && Model.Services.Any())
+                                {
+                                    <option selected disabled>Välj en tjänst</option>
+                                    @foreach (var service in Model.Services)
+                                    {
+                                        <option value="@service.ServiceID">@service.ServiceName</option>
+                                    }
+                                }
+                                else
+                                {
+                                    <option selected disabled>Kontakta Admin - inga tjänster tillgängliga</option>
+                                }
+                            </select>
+                            <span class="text-danger d-none" id="orderServiceError">Välj en giltig tjänst.</span>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Timmar</label>
+                            <input type="number" id="orderHours" class="form-control">
+                            <span class="text-danger d-none" id="orderHoursError">Timmar måste vara ett positivt tal.</span>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Pris per timme</label>
+                            <input type="number" id="orderPricePerHour" class="form-control">
+                            <span class="text-danger d-none" id="orderPriceError">Pris måste vara ett positivt tal.</span>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Kund</label>
+                            <select id="orderCustomer" class="form-select">
+                                @if (Model.Customers != null && Model.Customers.Any())
+                                {
+                                    <option selected disabled>Välj en kund</option>
+                                    @foreach (var customer in Model.Customers)
+                                    {
+                                        <option value="@customer.CustomerID">@customer.CustomerName</option>
+                                    }
+                                }
+                                else
+                                {
+                                    <option selected disabled>Kontakta Admin - inga kunder tillgängliga</option>
+                                }
+                            </select>
+                            <span class="text-danger d-none" id="orderCustomerError">Välj en giltig kund.</span>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Avbryt</button>
+                        <button type="button" id="saveOrder" class="btn btn-primary">Spara Beställning</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-
-        <!-- 📌 Sektion: Sammanställning -->
-        <div class="border p-3 mb-4">
+        <!-- 📌 SECTION 3: SAMMANSTÄLLNING -->
+        <div class="border p-3">
             <h4 class="mb-3">Sammanställning</h4>
             <div class="row g-3">
                 <div class="col-md-3">
                     <label class="form-label">Totala Timmar</label>
-                    <input type="text" class="form-control" id="totalHours" value="579" readonly>
+                    <input type="number" id="totalHours" class="form-control" asp-for="Summary.TotalHours" readonly>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Total Pris</label>
-                    <input type="text" class="form-control" id="totalPrice" value="71217 kr" readonly>
+                    <input type="number" id="totalPrice" class="form-control" asp-for="Summary.TotalPrice" readonly>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Anteckningar</label>
-                    <textarea class="form-control" id="notes">Anteckningar om projektet...</textarea>
+                    <textarea class="form-control" asp-for="Summary.Notes"></textarea>
                 </div>
             </div>
         </div>
 
-    <!-- Action Buttons -->
-    <div class="d-flex justify-content-between gap-3 p-3 mb-4">
-        <button style="width: 120px;" type="button" class="btn btn-danger">Ta bort</button>
-        <div class="d-flex gap-3">
-            <a asp-controller="ProjectPage" asp-action="Index" class="btn btn-secondary">Avbryt</a>
+        <div class="mt-4 d-flex justify-content-end gap-3">
+            <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Avbryt</a>
             <button type="submit" class="btn btn-success">Spara</button>
         </div>
-    </div>
-
-
-
+    </form>
 </div>
 
-<!-- ✅ JavaScript Sektion 2: Hantera "Skapa ny beställning" -->
+
 <script>
-    // 🔵 JavaScript Sektion 2: Hantera "Skapa ny beställning" och uppdatera listan och sammanställning
+    document.addEventListener("DOMContentLoaded", function () {
+        const totalHoursField = document.getElementById("totalHours");
+        const totalPriceField = document.getElementById("totalPrice");
+        const orderList = document.getElementById("orderList");
+        const form = document.querySelector("form");
 
-    // Funktion för att uppdatera sammanställning (Sektion 3)
-    function updateSummary() {
-        let totalHours = 0;
-        let totalPrice = 0;
+        /**
+         * Förhindrar att totalHours och totalPrice kan redigeras manuellt.
+         */
+        const preventEdit = (event) => event.preventDefault();
+        totalHoursField.addEventListener("keydown", preventEdit);
+        totalHoursField.addEventListener("paste", preventEdit);
+        totalHoursField.addEventListener("mousedown", preventEdit);
+        totalPriceField.addEventListener("keydown", preventEdit);
+        totalPriceField.addEventListener("paste", preventEdit);
+        totalPriceField.addEventListener("mousedown", preventEdit);
 
-        // Loopa igenom alla beställningar i listan
-        document.querySelectorAll('#orderList li').forEach(order => {
-            const text = order.querySelector('div').innerText;
-            const match = text.match(/(\d+) timmar x (\d+) kr\/timme = (\d+) kr/);
+        /**
+         * Uppdaterar summeringen av beställningar.
+         */
+        const updateSummary = () => {
+            let totalHours = 0;
+            let totalPrice = 0;
 
-            if (match) {
-                totalHours += parseInt(match[1], 10); // Lägg till timmar
-                totalPrice += parseInt(match[3], 10); // Lägg till totalpris
+            document.querySelectorAll("#orderList .order-item").forEach(order => {
+                const hours = parseFloat(order.dataset.hours);
+                const price = parseFloat(order.dataset.price);
+                totalHours += hours;
+                totalPrice += hours * price;
+            });
+
+            totalHoursField.value = totalHours.toFixed(2);
+            totalPriceField.value = totalPrice.toFixed(2);
+        };
+
+        /**
+         * Validerar inmatningsfälten i beställningsmodulen.
+         */
+        const validateFields = () => {
+            let isValid = true;
+            const service = document.getElementById("orderService").value;
+            const customer = document.getElementById("orderCustomer").value;
+            const hours = parseFloat(document.getElementById("orderHours").value.trim());
+            const pricePerHour = parseFloat(document.getElementById("orderPricePerHour").value.trim());
+
+            document.getElementById("orderServiceError").classList.toggle("d-none", service !== "");
+            document.getElementById("orderCustomerError").classList.toggle("d-none", customer !== "");
+            document.getElementById("orderHoursError").classList.toggle("d-none", !isNaN(hours) && hours > 0);
+            document.getElementById("orderPriceError").classList.toggle("d-none", !isNaN(pricePerHour) && pricePerHour > 0);
+
+            isValid = service !== "" && customer !== "" && !isNaN(hours) && hours > 0 && !isNaN(pricePerHour) && pricePerHour > 0;
+            return isValid;
+        };
+
+        /**
+         * Lägger till en ny beställning i listan.
+         */
+        document.getElementById("saveOrder").addEventListener("click", function () {
+            if (!validateFields()) {
+                return;
+            }
+
+            const serviceSelect = document.getElementById("orderService");
+            const customerSelect = document.getElementById("orderCustomer");
+            const serviceId = serviceSelect.value;
+            const serviceName = serviceSelect.options[serviceSelect.selectedIndex].text;
+            const customerId = customerSelect.value;
+            const customerName = customerSelect.options[customerSelect.selectedIndex].text;
+            const hours = parseFloat(document.getElementById("orderHours").value.trim());
+            const pricePerHour = parseFloat(document.getElementById("orderPricePerHour").value.trim());
+            const totalPrice = (hours * pricePerHour).toFixed(2);
+
+            // Skapa en ny beställningspost
+            const listItem = document.createElement("li");
+            listItem.className = "list-group-item d-flex justify-content-between align-items-center order-item";
+            listItem.dataset.serviceId = serviceId;
+            listItem.dataset.customerId = customerId;
+            listItem.dataset.hours = hours;
+            listItem.dataset.price = pricePerHour;
+
+            listItem.innerHTML = `
+                <div>
+                    <strong>${serviceName}</strong> - ${hours} timmar x ${pricePerHour} kr/timme =
+                    <strong>${totalPrice} kr</strong>
+                    <br><small>Kund: ${customerName}</small>
+                </div>
+                <button type="button" class="btn btn-danger btn-sm remove-order">Ta bort</button>
+            `;
+
+            // Lägg till i listan och uppdatera index
+            orderList.appendChild(listItem);
+            updateOrderInputs();
+            updateSummary();
+
+            // Stäng modalen
+            const modalElement = document.getElementById("createOrderModal");
+            const modalInstance = bootstrap.Modal.getInstance(modalElement);
+            if (modalInstance) modalInstance.hide();
+        });
+
+        /**
+         * Tar bort en beställning från listan och uppdaterar indexeringen.
+         */
+        orderList.addEventListener("click", function (e) {
+            if (e.target.classList.contains("remove-order")) {
+                const listItem = e.target.closest("li");
+                listItem.remove();
+                updateOrderInputs();
+                updateSummary();
             }
         });
 
-        // Uppdatera fälten i sammanställningen (Sektion 3)
-        document.getElementById('totalHours').value = totalHours;
-        document.getElementById('totalPrice').value = `${totalPrice} kr`;
-    }
+        /**
+         * Uppdaterar de dolda input-fälten så att de synkroniseras korrekt med beställningslistan.
+         */
+        const updateOrderInputs = () => {
+            // Ta bort alla gamla input-fält
+            document.querySelectorAll(".order-hidden-inputs").forEach(input => input.remove());
 
-    // Eventlistener för "Lägg till beställning" från popupen
-    document.getElementById('saveOrder').addEventListener('click', function () {
-        const serviceTitle = document.getElementById('orderService').value; // Uppdaterat för dropdown
-        const hours = parseInt(document.getElementById('orderHours').value.trim(), 10);
-        const pricePerHour = parseInt(document.getElementById('orderPricePerHour').value.trim(), 10);
-        const customer = document.getElementById('orderCustomer').value;
+            document.querySelectorAll("#orderList .order-item").forEach((item, index) => {
+                const serviceId = item.dataset.serviceId;
+                const customerId = item.dataset.customerId;
+                const hours = item.dataset.hours;
+                const price = item.dataset.price;
+                const serviceName = item.querySelector("strong").innerText.split(" - ")[0];
+                const customerName = item.querySelector("small").innerText.replace("Kund: ", "");
 
-        if (serviceTitle && !isNaN(hours) && !isNaN(pricePerHour) && customer) {
-            const totalPrice = hours * pricePerHour;
-            const orderList = document.getElementById('orderList');
+                form.insertAdjacentHTML("beforeend", `
+                    <input type="hidden" name="Orders[${index}].CustomerID" value="${customerId}" class="order-hidden-inputs">
+                    <input type="hidden" name="Orders[${index}].CustomerName" value="${customerName}" class="order-hidden-inputs">
+                    <input type="hidden" name="Orders[${index}].ServiceID" value="${serviceId}" class="order-hidden-inputs">
+                    <input type="hidden" name="Orders[${index}].ServiceName" value="${serviceName}" class="order-hidden-inputs">
+                    <input type="hidden" name="Orders[${index}].Hours" value="${hours}" class="order-hidden-inputs">
+                    <input type="hidden" name="Orders[${index}].Price" value="${price}" class="order-hidden-inputs">
+                `);
+            });
+        };
 
-            // Lägg till ny beställning i listan
-            const listItem = document.createElement('li');
-            listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
-            listItem.innerHTML = `
-                            <div>
-                                <strong>${serviceTitle}</strong> - ${hours} timmar x ${pricePerHour} kr/timme = <strong>${totalPrice} kr</strong>
-                                <br><small>Kund: ${customer}</small>
-                            </div>
-                            <button type="button" class="btn btn-danger btn-sm remove-order">Ta bort</button>
-                        `;
-            orderList.appendChild(listItem);
+        /**
+         * Validerar hela formuläret innan det skickas till servern.
+         */
+        const validateForm = () => {
+            let isValid = true;
 
-            // Uppdatera sammanställningen (Sektion 3)
-            updateSummary();
+            const toggleError = (inputId, errorId, condition) => {
+                document.getElementById(errorId).classList.toggle("d-none", !condition);
+                document.getElementById(inputId).classList.toggle("is-invalid", condition);
+            };
 
-            // Rensa inputfält och stäng modal
-            document.getElementById('orderService').value = ''; // Uppdaterat för dropdown
-            document.getElementById('orderHours').value = '';
-            document.getElementById('orderPricePerHour').value = '';
-            bootstrap.Modal.getInstance(document.getElementById('createOrderModal')).hide();
-        }
+            toggleError("Description", "DescriptionError", document.getElementById("Description").value.trim() === "");
+            toggleError("StartDate", "StartDateError", document.getElementById("StartDate").value === "");
+            toggleError("Status", "StatusError", document.getElementById("Status").value === "");
+            toggleError("ProjectLeaderID", "ProjectLeaderError", document.getElementById("ProjectLeaderID").value === "0");
+
+            const hasOrders = document.querySelectorAll("#orderList .order-item").length > 0;
+            document.getElementById("OrderError").classList.toggle("d-none", hasOrders);
+
+            if (!hasOrders) isValid = false;
+
+            return isValid;
+        };
+
+        /**
+         * Förhindrar att formuläret skickas om valideringen misslyckas.
+         */
+        form.addEventListener("submit", function (event) {
+            if (!validateForm()) {
+                event.preventDefault();
+            }
+        });
     });
 
-    // Eventlistener för "Ta bort beställning"
-    document.getElementById('orderList').addEventListener('click', function (e) {
-        if (e.target.classList.contains('remove-order')) {
-            e.target.closest('li').remove(); // Ta bort beställningen från listan
-            updateSummary(); // Uppdatera sammanställningen efter borttagning
-        }
-    });
+
 </script>

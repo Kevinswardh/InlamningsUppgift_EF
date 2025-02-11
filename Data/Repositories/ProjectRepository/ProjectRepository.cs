@@ -41,6 +41,31 @@ namespace Data.DatabaseRepository
                 .Include(p => p.Summary) // Inkluderar Summary
                 .ToListAsync();
         }
+        public async Task<Project> GetProjectByIdWithDetailsAsync(int id)
+        {
+            var project = await _dbSet
+                .Where(p => p.ProjectID == id)
+                .Include(p => p.ProjectLeader)
+                .Include(p => p.Orders)
+                    .ThenInclude(o => o.Customer)
+                .Include(p => p.Orders)
+                    .ThenInclude(o => o.Service)
+                .Include(p => p.Summary)
+                .FirstOrDefaultAsync();
+
+            if (project == null)
+            {
+                throw new KeyNotFoundException($"Projekt med ID {id} hittades inte.");
+            }
+
+            return project;
+        }
+
+        public async Task DeleteOrderAsync(Order order)
+        {
+            _context.Orders.Remove(order);
+            await _context.SaveChangesAsync();
+        }
 
 
 

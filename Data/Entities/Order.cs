@@ -10,18 +10,18 @@ namespace Data.Entities
 {
     public class Order
     {
-        // Composite Key: CustomerID + ServiceID
+        // ✅ **Sammansatt Primärnyckel: ProjectID + CustomerID + ServiceID**
         [Key]
         [Column(Order = 0)]
-        public int CustomerID { get; set; }
+        public int ProjectID { get; set; }
 
         [Key]
         [Column(Order = 1)]
-        public int ServiceID { get; set; }
+        public int CustomerID { get; set; }
 
-        // Other Fields
-        [Required]
-        public int ProjectID { get; set; }
+        [Key]
+        [Column(Order = 2)]
+        public int ServiceID { get; set; }
 
         [Required]
         public decimal Hours { get; set; }
@@ -29,9 +29,9 @@ namespace Data.Entities
         [Required]
         public decimal Price { get; set; }
 
-        // Navigation
+        // 🔹 **Navigationsproperties**
+        public Project Project { get; set; } = null!;
         public Customer Customer { get; set; } = null!;
         public Service Service { get; set; } = null!;
-        public Project Project { get; set; } = null!;
     }
 }

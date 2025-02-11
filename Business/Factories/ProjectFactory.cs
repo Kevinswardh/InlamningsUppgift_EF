@@ -2,6 +2,7 @@
 using Data.Entities;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Business.Factories
 {
@@ -14,7 +15,7 @@ namespace Business.Factories
                 throw new ArgumentException("Slutdatum kan inte vara före startdatum.");
             }
 
-            return new Project
+            var project = new Project
             {
                 ProjectID = dto.ProjectID,
                 ProjectNumber = dto.ProjectNumber,
@@ -24,7 +25,18 @@ namespace Business.Factories
                 Status = string.IsNullOrWhiteSpace(dto.Status) ? "Planerat" : dto.Status,
                 ProjectLeaderID = projectLeader?.ProjectLeaderID ?? 0,
                 ProjectLeader = projectLeader,
-                Orders = new List<Order>(), // Kan mappas senare om nödvändigt
+
+                // ✅ Lägg till Orders direkt i projektet
+                Orders = dto.Orders.Select(o => new Order
+                {
+                    CustomerID = o.CustomerID,
+                    ServiceID = o.ServiceID,
+                    ProjectID = dto.ProjectID, // 👈 Viktigt att koppla rätt ProjectID!
+                    Hours = o.Hours,
+                    Price = o.Price
+                }).ToList(),
+
+                // 🔹 Lägg till Summary om det finns
                 Summary = dto.Summary != null
                     ? new Summary
                     {
@@ -34,7 +46,8 @@ namespace Business.Factories
                     }
                     : null
             };
-        }
 
+            return project;
+        }
     }
 }

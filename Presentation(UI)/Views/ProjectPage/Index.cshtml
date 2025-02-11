@@ -1,6 +1,7 @@
 ﻿@{
     ViewData["Title"] = "Projektinformation";
 }
+@model Presentation_UI_.ViewModels.ProjectViewModel
 
 <div class="container mt-5">
     <h2 class="mb-4">Projektinformation</h2>
@@ -11,49 +12,57 @@
         <div class="row g-3">
             <div class="col-md-3">
                 <label class="form-label">Projektnr</label>
-                <input type="text" class="form-control" value="P-101" readonly>
+                <input type="text" class="form-control" value="@Model.ProjectNumber" readonly>
             </div>
             <div class="col-md-6">
                 <label class="form-label">Benämning</label>
-                <input type="text" class="form-control" value="Städa mattan" readonly>
+                <input type="text" class="form-control" value="@Model.Description" readonly>
             </div>
             <div class="col-md-3">
                 <label class="form-label">Startdatum</label>
-                <input type="text" class="form-control" value="2025-02-10" readonly>
+                <input type="text" class="form-control" value="@(Model.StartDate != default ? Model.StartDate.ToString("yyyy-MM-dd") : "Ej satt")" readonly>
             </div>
             <div class="col-md-3">
                 <label class="form-label">Slutdatum</label>
-                <input type="text" class="form-control" value="2025-02-15" readonly>
+                <input type="text" class="form-control" value="@(Model.EndDate.HasValue ? Model.EndDate.Value.ToString("yyyy-MM-dd") : "Ej satt")" readonly>
             </div>
             <div class="col-md-3">
                 <label class="form-label">Status</label>
-                <input type="text" class="form-control" value="Pågår" readonly>
+                <input type="text" class="form-control" value="@Model.Status" readonly>
             </div>
             <div class="col-md-6">
                 <label class="form-label">Projektledare</label>
-                <input type="text" class="form-control" value="Anna Andersson" readonly>
+                <input type="text" class="form-control" value="@(Model.ProjectLeaders.FirstOrDefault()?.Name ?? "Ej tilldelad")" readonly>
             </div>
         </div>
     </div>
 
+
     <!-- 📌 Sektion: Beställningar -->
     <div class="border p-3 mb-4">
         <h4 class="mb-3">Beställningar</h4>
-        <ul class="list-group">
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                <div>
-                    <strong>Ny matta</strong> - 123 timmar x 123 kr/timme = <strong>15129 kr</strong>
-                    <br><small>Kund: Företag A</small>
-                </div>
-            </li>
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                <div>
-                    <strong>Städa mattan</strong> - 456 timmar x 123 kr/timme = <strong>56088 kr</strong>
-                    <br><small>Kund: Företag B</small>
-                </div>
-            </li>
-        </ul>
+
+        @if (Model.Orders.Any())
+        {
+            <ul class="list-group">
+                @foreach (var order in Model.Orders)
+                {
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>@order.ServiceName</strong> - @order.Hours timmar x @order.Price kr/timme =
+                            <strong>@((order.Hours * order.Price).ToString("C"))</strong>
+                            <br><small>Kund: @order.CustomerName</small>
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <p class="text-muted">Inga beställningar kopplade till detta projekt.</p>
+        }
     </div>
+
 
     <!-- 📌 Sektion: Sammanställning -->
     <div class="border p-3 mb-4">
@@ -61,24 +70,25 @@
         <div class="row g-3">
             <div class="col-md-3">
                 <label class="form-label">Totala Timmar</label>
-                <input type="text" class="form-control" value="579" readonly>
+                <input type="text" class="form-control" value="@Model.Orders.Sum(o => o.Hours)" readonly>
             </div>
             <div class="col-md-3">
                 <label class="form-label">Total Pris</label>
-                <input type="text" class="form-control" value="71217 kr" readonly>
+                <input type="text" class="form-control" value="@Model.Orders.Sum(o => o.Hours * o.Price).ToString("C")" readonly>
             </div>
             <div class="col-md-6">
                 <label class="form-label">Anteckningar</label>
-                <textarea class="form-control" rows="3" readonly>Anteckningar om projektet...</textarea>
+                <textarea class="form-control" rows="3" readonly>@(Model.Summary?.Notes ?? "Inga anteckningar")</textarea>
             </div>
         </div>
     </div>
+
 
     <!-- 📌 Action Buttons -->
     <div class="d-flex justify-content-end gap-3 p-3 mb-4">
       
         <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Tillbaka</a>
-        <a asp-controller="EditPage" asp-action="Index" type="button" class="btn btn-warning">Redigera</a>
+        <a asp-controller="EditPage" asp-action="Index" asp-route-id="@Model.ProjectID" type="button" class="btn btn-warning">Redigera</a>
     </div>
 
 </div>

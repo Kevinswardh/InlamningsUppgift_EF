@@ -13,5 +13,7 @@ namespace Data.DatabaseRepository
         Task<IEnumerable<Customer>> GetAllCustomersAsync();
 
         Task<IEnumerable<Project>> GetAllProjectsWithDetailsAsync();
+        Task<Project> GetProjectByIdWithDetailsAsync(int id);
+        Task DeleteOrderAsync(Order order);
     }
 }
