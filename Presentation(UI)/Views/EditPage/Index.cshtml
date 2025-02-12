@@ -67,12 +67,17 @@
                 {
                     @for (int i = 0; i < Model.Orders.Count; i++)
                     {
-                        <li class="list-group-item d-flex justify-content-between align-items-center" data-order-id="@Model.Orders[i].ServiceID">
+                        <li class="list-group-item d-flex justify-content-between align-items-center order-item"
+                            data-order-id="@Model.Orders[i].ServiceID"
+                            data-hours="@Model.Orders[i].Hours"
+                            data-price="@Model.Orders[i].Price">
+
                             <div>
                                 <strong>@Model.Orders[i].ServiceName</strong> - @Model.Orders[i].Hours timmar x @Model.Orders[i].Price kr/timme =
                                 <strong>@(Model.Orders[i].Hours * Model.Orders[i].Price) kr</strong>
                                 <br><small>Kund: @Model.Orders[i].CustomerName</small>
                             </div>
+
                             <button type="button" class="btn btn-danger btn-sm remove-order">Ta bort</button>
 
                             <!-- Dolda input-fält för att säkerställa att beställningen skickas till servern -->
@@ -86,6 +91,7 @@
                     }
                 }
             </ul>
+
 
 
             <!-- 🔴 Felmeddelanden visas här om ingen beställning har lagts till -->
@@ -194,6 +200,15 @@
         const totalPriceField = document.getElementById("totalPrice");
         const orderList = document.getElementById("orderList");
         const form = document.querySelector("form");
+        updateSummary();
+        // Hitta högsta order-id vid sidladdning
+        let highestOrderId = 0;
+        document.querySelectorAll("#orderList li[data-order-id]").forEach(item => {
+            const orderId = parseInt(item.dataset.orderId);
+            if (orderId > highestOrderId) {
+                highestOrderId = orderId;
+            }
+        });
 
         /**
          * Förhindrar att totalHours och totalPrice kan redigeras manuellt.
@@ -209,25 +224,120 @@
         /**
          * Uppdaterar summeringen av beställningar.
          */
-        const updateSummary = () => {
+        function updateSummary() {
             let totalHours = 0;
             let totalPrice = 0;
 
-            document.querySelectorAll("#orderList .order-item").forEach(order => {
-                const hours = parseFloat(order.dataset.hours);
-                const price = parseFloat(order.dataset.price);
+            document.querySelectorAll("#orderList li").forEach(order => {
+                const hours = parseFloat(order.querySelector('input[name*="Hours"]').value) || 0;
+                const price = parseFloat(order.querySelector('input[name*="Price"]').value) || 0;
                 totalHours += hours;
                 totalPrice += hours * price;
             });
 
             totalHoursField.value = totalHours.toFixed(2);
             totalPriceField.value = totalPrice.toFixed(2);
-        };
+        }
+
+
+        /**
+         * Skapar en ny beställning och tilldelar nästa ID
+         */
+        document.getElementById("saveOrder").addEventListener("click", function () {
+            if (!validateFields()) {
+                return;
+            }
+
+            highestOrderId++; // Öka högsta order-id med 1 för nästa order
+
+            const serviceSelect = document.getElementById("orderService");
+            const customerSelect = document.getElementById("orderCustomer");
+            const hours = parseFloat(document.getElementById("orderHours").value.trim());
+            const pricePerHour = parseFloat(document.getElementById("orderPricePerHour").value.trim());
+
+            const order = {
+                orderID: highestOrderId, // Använd det nya högsta ID:t
+                serviceID: serviceSelect.value,
+                serviceName: serviceSelect.options[serviceSelect.selectedIndex].text,
+                customerID: customerSelect.value,
+                customerName: customerSelect.options[customerSelect.selectedIndex].text,
+                hours: hours,
+                price: pricePerHour
+            };
+            updateSummary();
+
+            addOrderToList(order);
+    
+
+        });
+
+        /**
+         * Lägger till en beställning i listan och synkar den med formuläret.
+         */
+        function addOrderToList(order) {
+            const listItem = document.createElement("li");
+            listItem.className = "list-group-item d-flex justify-content-between align-items-center order-item";
+            listItem.dataset.orderId = order.orderID; // Sätter korrekt order-id
+            listItem.dataset.hours = order.hours;
+            listItem.dataset.price = order.price;
+
+            listItem.innerHTML = `
+                    <div>
+                        <strong>${order.serviceName}</strong> - ${order.hours} timmar x ${order.price} kr/timme =
+                        <strong>${(order.hours * order.price).toFixed(2)} kr</strong>
+                        <br><small>Kund: ${order.customerName}</small>
+                    </div>
+                    <button type="button" class="btn btn-danger btn-sm remove-order">Ta bort</button>
+
+                    <!-- Dolda input-fält för att skicka med beställningar -->
+                    <input type="hidden" name="Orders[${order.orderID}].ServiceID" value="${order.serviceID}" />
+                    <input type="hidden" name="Orders[${order.orderID}].CustomerID" value="${order.customerID}" />
+                    <input type="hidden" name="Orders[${order.orderID}].Hours" value="${order.hours}" />
+                    <input type="hidden" name="Orders[${order.orderID}].Price" value="${order.price}" />
+                    <input type="hidden" name="Orders[${order.orderID}].ServiceName" value="${order.serviceName}" />
+                    <input type="hidden" name="Orders[${order.orderID}].CustomerName" value="${order.customerName}" />
+                `;
+
+            orderList.appendChild(listItem);
+            updateSummary();
+
+            // Stäng modalen efter att en ny order har lagts till
+            const modalElement = document.getElementById("createOrderModal");
+            const modalInstance = bootstrap.Modal.getInstance(modalElement);
+            if (modalInstance) {
+                modalInstance.hide();
+            }
+
+        }
+
+        /**
+         * Tar bort en beställning från listan och synkar indexen.
+         */
+        orderList.addEventListener("click", function (e) {
+            if (e.target.classList.contains("remove-order")) {
+                e.target.closest("li").remove();
+                updateOrderInputs();
+                updateSummary();
+            }
+        });
+
+        /**
+         * Uppdaterar index och namn på de dolda input-fälten så att alla orders skickas i formuläret.
+         */
+        function updateOrderInputs() {
+            document.querySelectorAll("#orderList .order-item").forEach((item, index) => {
+                item.dataset.index = index;
+                item.querySelectorAll("input").forEach(input => {
+                    const name = input.name.replace(/\d+/, index);
+                    input.name = name;
+                });
+            });
+        }
 
         /**
          * Validerar inmatningsfälten i beställningsmodulen.
          */
-        const validateFields = () => {
+        function validateFields() {
             let isValid = true;
             const service = document.getElementById("orderService").value;
             const customer = document.getElementById("orderCustomer").value;
@@ -241,125 +351,26 @@
 
             isValid = service !== "" && customer !== "" && !isNaN(hours) && hours > 0 && !isNaN(pricePerHour) && pricePerHour > 0;
             return isValid;
-        };
-
-        /**
-         * Lägger till en ny beställning i listan.
-         */
-        document.getElementById("saveOrder").addEventListener("click", function () {
-            if (!validateFields()) {
-                return;
-            }
-
-            const serviceSelect = document.getElementById("orderService");
-            const customerSelect = document.getElementById("orderCustomer");
-            const serviceId = serviceSelect.value;
-            const serviceName = serviceSelect.options[serviceSelect.selectedIndex].text;
-            const customerId = customerSelect.value;
-            const customerName = customerSelect.options[customerSelect.selectedIndex].text;
-            const hours = parseFloat(document.getElementById("orderHours").value.trim());
-            const pricePerHour = parseFloat(document.getElementById("orderPricePerHour").value.trim());
-            const totalPrice = (hours * pricePerHour).toFixed(2);
-
-            // Skapa en ny beställningspost
-            const listItem = document.createElement("li");
-            listItem.className = "list-group-item d-flex justify-content-between align-items-center order-item";
-            listItem.dataset.serviceId = serviceId;
-            listItem.dataset.customerId = customerId;
-            listItem.dataset.hours = hours;
-            listItem.dataset.price = pricePerHour;
-
-            listItem.innerHTML = `
-                <div>
-                    <strong>${serviceName}</strong> - ${hours} timmar x ${pricePerHour} kr/timme =
-                    <strong>${totalPrice} kr</strong>
-                    <br><small>Kund: ${customerName}</small>
-                </div>
-                <button type="button" class="btn btn-danger btn-sm remove-order">Ta bort</button>
-            `;
-
-            // Lägg till i listan och uppdatera index
-            orderList.appendChild(listItem);
-            updateOrderInputs();
-            updateSummary();
-
-            // Stäng modalen
-            const modalElement = document.getElementById("createOrderModal");
-            const modalInstance = bootstrap.Modal.getInstance(modalElement);
-            if (modalInstance) modalInstance.hide();
-        });
-
-        /**
-         * Tar bort en beställning från listan och uppdaterar indexeringen.
-         */
-        orderList.addEventListener("click", function (e) {
-            if (e.target.classList.contains("remove-order")) {
-                const listItem = e.target.closest("li");
-                listItem.remove();
-                updateOrderInputs();
-                updateSummary();
-            }
-        });
-
-        /**
-         * Uppdaterar de dolda input-fälten så att de synkroniseras korrekt med beställningslistan.
-         */
-        const updateOrderInputs = () => {
-            // Ta bort alla gamla input-fält
-            document.querySelectorAll(".order-hidden-inputs").forEach(input => input.remove());
-
-            document.querySelectorAll("#orderList .order-item").forEach((item, index) => {
-                const serviceId = item.dataset.serviceId;
-                const customerId = item.dataset.customerId;
-                const hours = item.dataset.hours;
-                const price = item.dataset.price;
-                const serviceName = item.querySelector("strong").innerText.split(" - ")[0];
-                const customerName = item.querySelector("small").innerText.replace("Kund: ", "");
-
-                form.insertAdjacentHTML("beforeend", `
-                    <input type="hidden" name="Orders[${index}].CustomerID" value="${customerId}" class="order-hidden-inputs">
-                    <input type="hidden" name="Orders[${index}].CustomerName" value="${customerName}" class="order-hidden-inputs">
-                    <input type="hidden" name="Orders[${index}].ServiceID" value="${serviceId}" class="order-hidden-inputs">
-                    <input type="hidden" name="Orders[${index}].ServiceName" value="${serviceName}" class="order-hidden-inputs">
-                    <input type="hidden" name="Orders[${index}].Hours" value="${hours}" class="order-hidden-inputs">
-                    <input type="hidden" name="Orders[${index}].Price" value="${price}" class="order-hidden-inputs">
-                `);
-            });
-        };
+        }
 
         /**
          * Validerar hela formuläret innan det skickas till servern.
          */
-        const validateForm = () => {
-            let isValid = true;
-
-            const toggleError = (inputId, errorId, condition) => {
-                document.getElementById(errorId).classList.toggle("d-none", !condition);
-                document.getElementById(inputId).classList.toggle("is-invalid", condition);
-            };
-
-            toggleError("Description", "DescriptionError", document.getElementById("Description").value.trim() === "");
-            toggleError("StartDate", "StartDateError", document.getElementById("StartDate").value === "");
-            toggleError("Status", "StatusError", document.getElementById("Status").value === "");
-            toggleError("ProjectLeaderID", "ProjectLeaderError", document.getElementById("ProjectLeaderID").value === "0");
-
-            const hasOrders = document.querySelectorAll("#orderList .order-item").length > 0;
-            document.getElementById("OrderError").classList.toggle("d-none", hasOrders);
-
-            if (!hasOrders) isValid = false;
-
+        function validateForm() {
+            let isValid = document.querySelectorAll("#orderList .order-item").length > 0;
             return isValid;
-        };
+        }
 
         /**
-         * Förhindrar att formuläret skickas om valideringen misslyckas.
+         * Vid formulärinlämning - se till att alla beställningar är synkade.
          */
         form.addEventListener("submit", function (event) {
+            updateOrderInputs();
             if (!validateForm()) {
                 event.preventDefault();
+                alert("Du måste lägga till minst en beställning.");
             }
         });
+
     });
-
-
 </script>

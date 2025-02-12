@@ -19,20 +19,28 @@ namespace Data.DatabaseRepository
             _dbSet = _context.Set<TEntity>();
         }
 
-        public async Task AddAsync(TEntity entity)
+
+        //Virtuella överskrivningsbara
+        public virtual async Task<IEnumerable<TEntity>> GetAllAsync()
         {
-            await _dbSet.AddAsync(entity);
-            await _context.SaveChangesAsync();
+            return await _dbSet.ToListAsync();
         }
 
-        public async Task<TEntity> GetSingleAsync(Expression<Func<TEntity, bool>> predicate)
+        public virtual async Task<TEntity> GetSingleAsync(Expression<Func<TEntity, bool>> predicate)
         {
             return await _dbSet.FirstOrDefaultAsync(predicate);
         }
 
-        public async Task<IEnumerable<TEntity>> GetAllAsync()
+
+
+
+
+        //Icke vrituella eller överskrningsbara
+
+        public async Task AddAsync(TEntity entity)
         {
-            return await _dbSet.ToListAsync();
+            await _dbSet.AddAsync(entity);
+            await _context.SaveChangesAsync();
         }
 
 

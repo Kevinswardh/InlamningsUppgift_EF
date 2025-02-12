@@ -50,7 +50,7 @@ namespace Business.Services
         /// </summary>
         public async Task<IEnumerable<ProjectDTO>> GetAllProjectsAsync()
         {
-            var projects = await _projectRepository.GetAllProjectsWithDetailsAsync();
+            var projects = await _projectRepository.GetAllAsync();
 
             return projects.Select(p => new ProjectDTO
             {

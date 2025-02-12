@@ -10,6 +10,24 @@ namespace Data.DatabaseRepository
     {
         public ProjectRepository(AppDbContext context) : base(context) { }
 
+
+
+        //Overrides
+        public override async Task<IEnumerable<Project>> GetAllAsync()
+        {
+            return await _dbSet
+                .Include(p => p.ProjectLeader)
+                .Include(p => p.Orders)
+                    .ThenInclude(o => o.Customer)
+                .Include(p => p.Orders)
+                    .ThenInclude(o => o.Service)
+                .Include(p => p.Summary)
+                .ToListAsync();
+        }
+
+
+        //New (Not base)
+
         public async Task<string> GetMaxProjectNumberAsync()
         {
             var lastProject = await _dbSet.OrderByDescending(p => p.ProjectID).FirstOrDefaultAsync();
@@ -30,17 +48,6 @@ namespace Data.DatabaseRepository
             return await _context.Customers.ToListAsync();
         }
 
-        public async Task<IEnumerable<Project>> GetAllProjectsWithDetailsAsync()
-        {
-            return await _dbSet
-                .Include(p => p.ProjectLeader) // Inkluderar ProjectLeader
-                .Include(p => p.Orders)
-                    .ThenInclude(o => o.Customer)
-                .Include(p => p.Orders)
-                    .ThenInclude(o => o.Service)
-                .Include(p => p.Summary) // Inkluderar Summary
-                .ToListAsync();
-        }
         public async Task<Project> GetProjectByIdWithDetailsAsync(int id)
         {
             var project = await _dbSet

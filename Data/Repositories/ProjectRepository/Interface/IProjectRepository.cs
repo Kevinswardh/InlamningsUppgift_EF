@@ -5,6 +5,12 @@ namespace Data.DatabaseRepository
 {
     public interface IProjectRepository : IBaseRepository<Project>
     {
+        //Overrides
+        Task<IEnumerable<Project>> GetAllAsync();
+
+
+
+        //New(not from base)
         Task<string> GetMaxProjectNumberAsync();
         Task<IEnumerable<ProjectLeader>> GetAllProjectLeadersAsync();
 
@@ -12,7 +18,6 @@ namespace Data.DatabaseRepository
 
         Task<IEnumerable<Customer>> GetAllCustomersAsync();
 
-        Task<IEnumerable<Project>> GetAllProjectsWithDetailsAsync();
         Task<Project> GetProjectByIdWithDetailsAsync(int id);
         Task DeleteOrderAsync(Order order);
     }
