@@ -1,5 +1,6 @@
 ﻿using Data.Database;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,7 @@ namespace Data.DatabaseRepository
     {
         protected readonly AppDbContext _context;
         protected readonly DbSet<TEntity> _dbSet;
+        private IDbContextTransaction _transaction; // Privat transaktionshantering
 
         public BaseRepository(AppDbContext context)
         {
@@ -19,8 +21,38 @@ namespace Data.DatabaseRepository
             _dbSet = _context.Set<TEntity>();
         }
 
+        // 🟢 Börja en transaktion om det inte redan finns en
+        public virtual async Task BeginTransactionAsync()
+        {
+            if (_context.Database.CurrentTransaction == null) // ✅ Kolla om transaktion redan finns
+            {
+                _transaction = await _context.Database.BeginTransactionAsync();
+            }
+        }
 
-        //Virtuella överskrivningsbara
+        // 🔵 Bekräfta transaktionen
+        public virtual async Task CommitTransactionAsync()
+        {
+            if (_transaction != null)
+            {
+                await _transaction.CommitAsync();
+                await _transaction.DisposeAsync();
+                _transaction = null;
+            }
+        }
+
+        // 🔴 Återställ transaktionen vid fel
+        public virtual async Task RollbackTransactionAsync()
+        {
+            if (_transaction != null)
+            {
+                await _transaction.RollbackAsync();
+                await _transaction.DisposeAsync();
+                _transaction = null;
+            }
+        }
+
+        // Virtuella metoder som kan skrivas över i subklasser
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync()
         {
             return await _dbSet.ToListAsync();
@@ -31,19 +63,12 @@ namespace Data.DatabaseRepository
             return await _dbSet.FirstOrDefaultAsync(predicate);
         }
 
-
-
-
-
-        //Icke vrituella eller överskrningsbara
-
+        // Standard CRUD-operationer
         public async Task AddAsync(TEntity entity)
         {
             await _dbSet.AddAsync(entity);
             await _context.SaveChangesAsync();
         }
-
-
 
         public async Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate)
         {

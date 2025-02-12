@@ -13,11 +13,15 @@ namespace Presentation_UI_.Controllers
     {
         private readonly IProjectService _projectService;
         private readonly ILogger<CreatePageController> _logger;
+        private readonly ICustomerService _customerService;
+        private readonly IServiceService _service;
 
-        public CreatePageController(IProjectService projectService, ILogger<CreatePageController> logger)
+        public CreatePageController(IProjectService projectService, ILogger<CreatePageController> logger, ICustomerService customerService, IServiceService service)
         {
             _projectService = projectService;
             _logger = logger;
+            _customerService = customerService;
+            _service = service;
         }
 
         // GET: /CreatePage/
@@ -29,8 +33,8 @@ namespace Presentation_UI_.Controllers
             _logger.LogInformation($"Nästa projektnummer: {nextProjectNumber}");
 
             var projectLeaders = await _projectService.GetAllProjectLeadersAsync();
-            var services = await _projectService.GetAllServicesAsync();
-            var customers = await _projectService.GetAllCustomersAsync();
+            var services = await _service.GetAllServicesAsync();
+            var customers = await _customerService.GetAllCustomersAsync();
 
             var model = new ProjectCreateViewModel
             {
@@ -125,8 +129,8 @@ namespace Presentation_UI_.Controllers
 
                 // Ladda om listor för dropdown-menyer
                 var projectLeaders = await _projectService.GetAllProjectLeadersAsync();
-                var services = await _projectService.GetAllServicesAsync();
-                var customers = await _projectService.GetAllCustomersAsync();
+                var services = await _service.GetAllServicesAsync();
+                var customers = await _customerService.GetAllCustomersAsync();
 
                 model.ProjectLeaders = projectLeaders.Select(pl => new ProjectLeaderViewModel
                 {

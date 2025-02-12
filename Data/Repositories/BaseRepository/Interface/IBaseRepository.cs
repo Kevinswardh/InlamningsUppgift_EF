@@ -13,5 +13,10 @@ namespace Data.DatabaseRepository
         Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate);
         Task UpdateAsync(TEntity entity);
         Task DeleteAsync(TEntity entity);
+
+        //Transaktion managment
+        Task BeginTransactionAsync();
+        Task CommitTransactionAsync();
+        Task RollbackTransactionAsync();
     }
 }

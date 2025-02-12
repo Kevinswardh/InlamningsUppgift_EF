@@ -32,17 +32,36 @@ namespace Business.Services
 
         public async Task CreateCustomerAsync(CustomerDTO customerDto)
         {
-            // Använd CustomerFactory för att skapa en Customer-instans
-            var customer = CustomerFactory.CreateCustomer(customerDto);
-            await _customerRepository.AddAsync(customer);
+            await _customerRepository.BeginTransactionAsync();
+            try
+            {
+                var customer = CustomerFactory.CreateCustomer(customerDto);
+                await _customerRepository.AddAsync(customer);
+                await _customerRepository.CommitTransactionAsync();
+            }
+            catch
+            {
+                await _customerRepository.RollbackTransactionAsync();
+                throw;
+            }
         }
 
         public async Task DeleteCustomerAsync(int customerId)
         {
-            var customer = await _customerRepository.GetSingleAsync(c => c.CustomerID == customerId);
-            if (customer != null)
+            await _customerRepository.BeginTransactionAsync();
+            try
             {
-                await _customerRepository.DeleteAsync(customer);
+                var customer = await _customerRepository.GetSingleAsync(c => c.CustomerID == customerId);
+                if (customer != null)
+                {
+                    await _customerRepository.DeleteAsync(customer);
+                    await _customerRepository.CommitTransactionAsync();
+                }
+            }
+            catch
+            {
+                await _customerRepository.RollbackTransactionAsync();
+                throw;
             }
         }
     }

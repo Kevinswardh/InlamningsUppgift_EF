@@ -28,17 +28,46 @@ namespace Business.Services
 
         public async Task CreateServiceAsync(ServiceDTO serviceDto)
         {
-            var service = new Service { ServiceName = serviceDto.ServiceName };
-            await _serviceRepository.AddAsync(service);
+            await _serviceRepository.BeginTransactionAsync();
+            try
+            {
+                var service = new Service { ServiceName = serviceDto.ServiceName };
+                await _serviceRepository.AddAsync(service);
+                await _serviceRepository.CommitTransactionAsync();
+            }
+            catch
+            {
+                await _serviceRepository.RollbackTransactionAsync();
+                throw;
+            }
         }
 
         public async Task DeleteServiceAsync(int serviceId)
         {
-            var service = await _serviceRepository.GetSingleAsync(s => s.ServiceID == serviceId);
-            if (service != null)
+            await _serviceRepository.BeginTransactionAsync();
+            try
             {
-                await _serviceRepository.DeleteAsync(service);
+                var service = await _serviceRepository.GetSingleAsync(s => s.ServiceID == serviceId);
+                if (service != null)
+                {
+                    await _serviceRepository.DeleteAsync(service);
+                    await _serviceRepository.CommitTransactionAsync();
+                }
             }
+            catch
+            {
+                await _serviceRepository.RollbackTransactionAsync();
+                throw;
+            }
+        }
+
+        public async Task<Service> GetServiceEntityByIdAsync(int serviceId)
+        {
+            var service = await _serviceRepository.GetSingleAsync(s => s.ServiceID == serviceId);
+            if (service == null)
+                throw new KeyNotFoundException("Tjänsten hittades inte.");
+
+            return service;
         }
     }
 }

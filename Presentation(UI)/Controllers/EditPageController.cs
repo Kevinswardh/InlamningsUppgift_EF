@@ -12,12 +12,16 @@ namespace Presentation_UI_.Controllers
     {
         private readonly IProjectService _projectService;
         private readonly ILogger<EditPageController> _logger;  // Lägg till loggern
+        private readonly IServiceService _service;
+        private readonly ICustomerService _customerService;
 
         // Konstruktor
-        public EditPageController(IProjectService projectService, ILogger<EditPageController> logger)
+        public EditPageController(IProjectService projectService, ILogger<EditPageController> logger, IServiceService service, ICustomerService customerService)
         {
             _projectService = projectService;
             _logger = logger;  // Tilldela loggern
+            _service = service;
+            _customerService = customerService;
         }
 
 
@@ -38,8 +42,8 @@ namespace Presentation_UI_.Controllers
             _logger.LogInformation("Projekt med ID: {ProjectId} hämtades och ska redigeras.", id);
 
             var projectLeaders = await _projectService.GetAllProjectLeadersAsync();
-            var services = await _projectService.GetAllServicesAsync();
-            var customers = await _projectService.GetAllCustomersAsync();
+            var services = await _service.GetAllServicesAsync();
+            var customers = await _customerService.GetAllCustomersAsync();
 
             var viewModel = new ProjectCreateViewModel
             {
