@@ -25,14 +25,17 @@ namespace Data.Database
             if (!optionsBuilder.IsConfigured)
             {
                 var configuration = new ConfigurationBuilder()
-                    .SetBasePath(AppContext.BaseDirectory) // Använd AppContext.BaseDirectory istället för Directory.GetCurrentDirectory()
+                    .SetBasePath(AppContext.BaseDirectory)
                     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                     .Build();
 
                 var connectionString = configuration.GetConnectionString("DefaultConnection");
-                optionsBuilder.UseSqlServer(connectionString);
+
+                optionsBuilder
+                    .UseSqlServer(connectionString).UseLazyLoadingProxies(); // 🔹 Aktivera Lazy Loading
             }
         }
+
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

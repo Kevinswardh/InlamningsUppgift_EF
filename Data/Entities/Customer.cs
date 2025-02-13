@@ -2,9 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Data.Entities
 {
@@ -23,8 +20,7 @@ namespace Data.Entities
         public string? Address { get; set; }
         public decimal? Discount { get; set; }
 
-        // Navigation
-        public ICollection<Order> Orders { get; set; } = new List<Order>();
+        // Navigation (Lazy Loading aktiveras med virtual)
+        public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
     }
-
 }

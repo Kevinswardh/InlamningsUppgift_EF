@@ -2,9 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Data.Entities
 {
@@ -29,9 +26,9 @@ namespace Data.Entities
         [Required]
         public decimal Price { get; set; }
 
-        // 🔹 **Navigationsproperties**
-        public Project Project { get; set; } = null!;
-        public Customer Customer { get; set; } = null!;
-        public Service Service { get; set; } = null!;
+        // 🔹 **Navigationsproperties med Lazy Loading**
+        public virtual Project Project { get; set; } = null!;   // 🔹 Lazy Loading fungerar nu
+        public virtual Customer Customer { get; set; } = null!; // 🔹 Lazy Loading fungerar nu
+        public virtual Service Service { get; set; } = null!;   // 🔹 Lazy Loading fungerar nu
     }
 }

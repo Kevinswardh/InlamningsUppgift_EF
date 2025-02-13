@@ -3,6 +3,7 @@
 1. DTOs (Data Transfer Objects) finns i Business/Dtos.
    - De används för att skicka data mellan lager.
    - Ingen affärslogik får finnas i en DTO.
+   - Kan användas vid Factories också. 
 
 2. När du behöver lägga till affärslogik i en DTO:
    - Skapa en motsvarande Model i Business/Models.

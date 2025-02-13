@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Data.Entities
 {
@@ -17,7 +14,7 @@ namespace Data.Entities
         [Required]
         public string ServiceName { get; set; } = null!;
 
-        // Navigation
-        public ICollection<Order> Orders { get; set; } = new List<Order>();
+        // Navigation (Lazy Loading aktiveras med virtual)
+        public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
     }
 }

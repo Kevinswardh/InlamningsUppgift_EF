@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Data.Entities
 {
@@ -14,8 +11,7 @@ namespace Data.Entities
         public string? Phone { get; set; }
         public string? Department { get; set; }
 
-        // Navigation
-        public ICollection<Project> Projects { get; set; } = new List<Project>();
+        // Navigation (Lazy Loading aktiveras med virtual)
+        public virtual ICollection<Project> Projects { get; set; } = new List<Project>();
     }
-
 }

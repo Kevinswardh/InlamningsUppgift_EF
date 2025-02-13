@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -25,11 +22,9 @@ namespace Data.Entities
         // Foreign Key
         public int ProjectLeaderID { get; set; }
 
-        // Navigation
-        public ProjectLeader ProjectLeader { get; set; } = null!;
-        public ICollection<Order> Orders { get; set; } = new List<Order>();
-        public Summary Summary { get; set; }
+        // Navigation (Lazy Loading aktiveras med virtual)
+        public virtual ProjectLeader ProjectLeader { get; set; } = null!; // 🔹 Lazy Loading fungerar nu
+        public virtual ICollection<Order> Orders { get; set; } = new List<Order>(); // 🔹 Lazy Loading fungerar nu
+        public virtual Summary Summary { get; set; } // 🔹 Lazy Loading fungerar nu
     }
-
-
 }

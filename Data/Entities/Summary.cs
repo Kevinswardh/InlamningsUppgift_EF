@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Data.Entities
 {
@@ -21,7 +18,7 @@ namespace Data.Entities
         public decimal? TotalPrice { get; set; }
         public string? Notes { get; set; }
 
-        // Navigation
-        public Project Project { get; set; } = null!;
+        // Navigation (Lazy Loading aktiveras med virtual)
+        public virtual Project Project { get; set; } = null!;
     }
 }
