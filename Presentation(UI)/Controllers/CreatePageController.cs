@@ -112,6 +112,22 @@ namespace Presentation_UI_.Controllers
                     LastName = pl.LastName
                 }).ToList();
 
+                // Ladda tjänster och kunder tillbaka till modellen
+                var services = await _service.GetAllServicesAsync();
+                var customers = await _customerService.GetAllCustomersAsync();
+
+                model.Services = services.Select(s => new ServiceViewModel
+                {
+                    ServiceID = s.ServiceID,
+                    ServiceName = s.ServiceName
+                }).ToList();
+
+                model.Customers = customers.Select(c => new CustomerViewModel
+                {
+                    CustomerID = c.CustomerID,
+                    CustomerName = c.CustomerName
+                }).ToList();
+
                 return View("Index", model);
             }
 
@@ -151,6 +167,7 @@ namespace Presentation_UI_.Controllers
             _logger.LogInformation("Projektet har sparats i databasen. Omdirigerar till Home.");
             return RedirectToAction("Index", "Home");
         }
+
 
 
         [HttpGet]
