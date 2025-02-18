@@ -27,6 +27,11 @@ namespace Presentation_UI_.Controllers
             var services = await _serviceService.GetAllServicesAsync();
             var projectLeaders = await _projectLeaderService.GetAllProjectLeadersAsync();
 
+            // Filtrera bort de projektledare som är markerade som borttagna eller har ProjectLeaderID == -1
+            var activeProjectLeaders = projectLeaders
+                .Where(pl => pl.IsDeleted == 0 && pl.ProjectLeaderID != -1)  // Lägg till kontroll för ProjectLeaderID != -1
+                .ToList();
+
             var model = new AdminPageViewModel
             {
                 Customers = customers.Select(c => new CustomerViewModel
@@ -44,10 +49,11 @@ namespace Presentation_UI_.Controllers
                     ServiceName = s.ServiceName
                 }).ToList(),
 
-                ProjectLeaders = projectLeaders.Select(pl => new ProjectLeaderViewModel
+                ProjectLeaders = activeProjectLeaders.Select(pl => new ProjectLeaderViewModel
                 {
                     ProjectLeaderID = pl.ProjectLeaderID,
-                    Name = pl.Name,
+                    FirstName = pl.FirstName,
+                    LastName = pl.LastName,
                     Email = pl.Email,
                     Phone = pl.Phone,
                     Department = pl.Department
@@ -58,11 +64,13 @@ namespace Presentation_UI_.Controllers
         }
 
 
+
+
         // 🔵 Lägg till Projektledare (Vänta på databas innan sidan returneras)
         [HttpPost]
         public async Task<IActionResult> AddProjectLeader(ProjectLeaderViewModel projectLeader)
         {
-            if (projectLeader == null || string.IsNullOrWhiteSpace(projectLeader.Name) || string.IsNullOrWhiteSpace(projectLeader.Email))
+            if (projectLeader == null || string.IsNullOrWhiteSpace(projectLeader.FirstName) || string.IsNullOrWhiteSpace(projectLeader.LastName) || string.IsNullOrWhiteSpace(projectLeader.Email))
             {
                 TempData["Error"] = "Alla fält måste fyllas i korrekt.";
                 return RedirectToAction("Index");
@@ -71,11 +79,13 @@ namespace Presentation_UI_.Controllers
             // Skapa en ProjectLeaderDTO från ProjectLeaderViewModel
             var projectLeaderDto = new ProjectLeaderDTO
             {
-                Name = projectLeader.Name,
+                FirstName = projectLeader.FirstName, // ✅ Ny kod
+                LastName = projectLeader.LastName,   // ✅ Ny kod
                 Email = projectLeader.Email,
                 Phone = projectLeader.Phone,
                 Department = projectLeader.Department
             };
+
 
             // 🟢 Vänta på att projektledaren läggs till i databasen
             await _projectLeaderService.CreateProjectLeaderAsync(projectLeaderDto);

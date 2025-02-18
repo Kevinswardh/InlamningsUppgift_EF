@@ -43,7 +43,14 @@
                     <label class="form-label">Projektledare</label>
                     @if (Model.ProjectLeaders != null && Model.ProjectLeaders.Any())
                     {
-                        <select class="form-select" asp-for="ProjectLeaderID" asp-items="@(new SelectList(Model.ProjectLeaders, "ProjectLeaderID", "Name"))"></select>
+                        <select class="form-select" asp-for="ProjectLeaderID">
+                            <option value="0">Välj en projektledare</option> <!-- ✅ Lägg tillbaka denna -->
+                            @foreach (var leader in Model.ProjectLeaders)
+                            {
+                                <option value="@leader.ProjectLeaderID">@($"{leader.FirstName} {leader.LastName}")</option>
+                            }
+                        </select>
+
                     }
                     else
                     {
@@ -51,6 +58,7 @@
                     }
                     <span asp-validation-for="ProjectLeaderID" class="text-danger"></span>
                 </div>
+
             </div>
         </div>
 

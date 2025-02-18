@@ -1,0 +1,16 @@
+UPDATE ProjectLeaders
+SET FirstName = LEFT(LastName, CHARINDEX(' ', LastName) - 1),
+    LastName = RIGHT(LastName, LEN(LastName) - CHARINDEX(' ', LastName))
+WHERE CHARINDEX(' ', LastName) > 0;
+
+
+Fick uppdatera gamla namn
+
+körde sedan
+
+UPDATE ProjectLeaders
+SET FirstName = LastName,
+    LastName = 'Okänt'
+WHERE FirstName IS NULL OR FirstName = '';
+
+detta gjordes när vi ändrade Name till FirstName/LastName för att följa normaliseringsformerna.

@@ -11,10 +11,11 @@ namespace Business.Services
     public class ProjectLeaderService : IProjectLeaderService
     {
         private readonly IBaseRepository<ProjectLeader> _projectLeaderRepository;
-
-        public ProjectLeaderService(IBaseRepository<ProjectLeader> projectLeaderRepository)
+        private readonly IProjectRepository _projectRepository;
+        public ProjectLeaderService(IBaseRepository<ProjectLeader> projectLeaderRepository, IProjectRepository projectRepository)
         {
             _projectLeaderRepository = projectLeaderRepository;
+            _projectRepository = projectRepository;
         }
 
         public async Task<IEnumerable<ProjectLeaderDTO>> GetAllProjectLeadersAsync()
@@ -23,12 +24,16 @@ namespace Business.Services
             return leaders.Select(pl => new ProjectLeaderDTO
             {
                 ProjectLeaderID = pl.ProjectLeaderID,
-                Name = pl.Name,
+                FirstName = pl.FirstName,  // ✅ Hämtar FirstName
+                LastName = pl.LastName,    // ✅ Hämtar LastName
                 Email = pl.Email,
                 Phone = pl.Phone,
-                Department = pl.Department
+                Department = pl.Department,
+                IsDeleted = pl.IsDeleted  // Lägg till IsDeleted här
             }).ToList();
         }
+
+
 
         public async Task CreateProjectLeaderAsync(ProjectLeaderDTO projectLeaderDto)
         {
@@ -36,7 +41,8 @@ namespace Business.Services
             try
             {
                 var projectLeader = ProjectLeaderFactory.Create(
-                    projectLeaderDto.Name,
+                    projectLeaderDto.FirstName,  // ✅ Använd FirstName
+                    projectLeaderDto.LastName,   // ✅ Använd LastName
                     projectLeaderDto.Email,
                     projectLeaderDto.Phone,
                     projectLeaderDto.Department
@@ -52,23 +58,43 @@ namespace Business.Services
             }
         }
 
+
         public async Task DeleteProjectLeaderAsync(int projectLeaderId)
         {
-            await _projectLeaderRepository.BeginTransactionAsync();
+            await _projectLeaderRepository.BeginTransactionAsync(); // Starta transaktion
             try
             {
+                // 🔹 Hämta alla projekt som är kopplade till projektledaren
+                var projects = await _projectRepository.GetProjectsByLeaderIdAsync(projectLeaderId);
+
+                // Loop igenom projekten och uppdatera ProjectLeaderID
+                foreach (var project in projects)
+                {
+                    project.ProjectLeaderID = -1; // Eller sätt till en standardprojektledare
+                    await _projectRepository.UpdateAsync(project);
+                }
+
+                // 🔹 Hämta projektledaren från databasen
                 var leader = await _projectLeaderRepository.GetSingleAsync(pl => pl.ProjectLeaderID == projectLeaderId);
                 if (leader != null)
                 {
-                    await _projectLeaderRepository.DeleteAsync(leader);
-                    await _projectLeaderRepository.CommitTransactionAsync();
+                    leader.IsDeleted = 1; // Markera som borttagen
+                    await _projectLeaderRepository.UpdateAsync(leader);
                 }
+
+                // Bekräfta transaktionen
+                await _projectLeaderRepository.CommitTransactionAsync();
             }
-            catch
+            catch (Exception ex)
             {
+                // Om något går fel, återställ ändringar
                 await _projectLeaderRepository.RollbackTransactionAsync();
-                throw;
+                throw new Exception("Ett fel uppstod vid borttagning av projektledare.", ex);
             }
         }
+
+
+
+
     }
 }

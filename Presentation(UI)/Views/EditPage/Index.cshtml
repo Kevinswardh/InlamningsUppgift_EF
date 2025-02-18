@@ -42,7 +42,31 @@
                     <label class="form-label">Projektledare</label>
                     @if (Model.ProjectLeaders != null && Model.ProjectLeaders.Any())
                     {
-                        <select class="form-select" asp-for="ProjectLeaderID" asp-items="@(new SelectList(Model.ProjectLeaders, "ProjectLeaderID", "Name"))"></select>
+                        <select class="form-select" asp-for="ProjectLeaderID">
+                            @* Show "Användare borttagen" only if ProjectLeaderID is -1 *@
+                            @if (Model.ProjectLeaderID == -1)
+                            {
+                                <option value="-1" selected>Användare borttagen</option>
+                            }
+  
+
+                            @* Loop through the rest of the leaders and show only active ones *@
+                            @foreach (var leader in Model.ProjectLeaders.Where(pl => pl.ProjectLeaderID != -1 && pl.IsDeleted != 1))
+                            {
+                                @if (leader.ProjectLeaderID == Model.ProjectLeaderID)
+                                {
+                                    <option value="@leader.ProjectLeaderID" selected>
+                                        @($"{leader.FirstName} {leader.LastName}")
+                                    </option>
+                                }
+                                else
+                                {
+                                    <option value="@leader.ProjectLeaderID">
+                                        @($"{leader.FirstName} {leader.LastName}")
+                                    </option>
+                                }
+                            }
+                        </select>
                     }
                     else
                     {
@@ -50,6 +74,11 @@
                     }
                     <span asp-validation-for="ProjectLeaderID" class="text-danger"></span>
                 </div>
+
+
+
+
+
             </div>
         </div>
 

@@ -29,7 +29,7 @@
                     @foreach (var leader in Model.ProjectLeaders)
                     {
                         <tr>
-                            <td>@leader.Name</td>
+                            <td>@leader.ProjectLeaderName</td> <!-- ✅ Uppdaterat -->
                             <td>@leader.Email</td>
                             <td>@leader.Phone</td>
                             <td>@leader.Department</td>
@@ -41,6 +41,7 @@
                         </tr>
                     }
                 </tbody>
+
             </table>
         
     </div>
@@ -113,33 +114,39 @@
 
 </div>
 
-<!-- Modal för att skapa/ändra Projektledare -->
-<div class="modal fade" id="createProjectLeaderModal">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Lägg till Projektledare</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <!-- Modal för att skapa/ändra Projektledare -->
+    <div class="modal fade" id="createProjectLeaderModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Lägg till Projektledare</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="post" asp-action="AddProjectLeader">
+                    <div class="modal-body">
+                        <label class="form-label">Förnamn</label> <!-- 🔹 Uppdaterat -->
+                        <input type="text" class="form-control mb-2" name="FirstName" placeholder="Förnamn" required>
+
+                        <label class="form-label">Efternamn</label> <!-- 🔹 Nytt fält -->
+                        <input type="text" class="form-control mb-2" name="LastName" placeholder="Efternamn" required>
+
+                        <label class="form-label">E-post</label>
+                        <input type="email" class="form-control mb-2" name="Email" placeholder="E-post" required>
+
+                        <label class="form-label">Telefon</label>
+                        <input type="text" class="form-control mb-2" name="Phone" placeholder="Telefon" required>
+
+                        <label class="form-label">Avdelning</label>
+                        <input type="text" class="form-control mb-2" name="Department" placeholder="Avdelning" required>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Avbryt</button>
+                        <button type="submit" class="btn btn-success">Spara</button>
+                    </div>
+                </form>
             </div>
-            <form method="post" asp-action="AddProjectLeader">
-                <div class="modal-body">
-                    <label class="form-label">Namn</label>
-                    <input type="text" class="form-control mb-2" name="Name" placeholder="Namn" required>
-                    <label class="form-label">E-post</label>
-                    <input type="email" class="form-control mb-2" name="Email" placeholder="E-post" required>
-                    <label class="form-label">Telefon</label>
-                    <input type="text" class="form-control mb-2" name="Phone" placeholder="Telefon" required>
-                    <label class="form-label">Avdelning</label>
-                    <input type="text" class="form-control mb-2" name="Department" placeholder="Avdelning" required>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Avbryt</button>
-                    <button type="submit" class="btn btn-success">Spara</button>
-                </div>
-            </form>
         </div>
     </div>
-</div>
 
 
     <!-- ✅ Modal för att skapa/ändra Kunder -->

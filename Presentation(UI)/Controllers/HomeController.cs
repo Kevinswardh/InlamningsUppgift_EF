@@ -1,4 +1,4 @@
-using Business.Services;
+ï»¿using Business.Services;
 using Microsoft.AspNetCore.Mvc;
 using Presentation_UI_.Models;
 using Presentation_UI_.ViewModels;
@@ -33,7 +33,9 @@ namespace Presentation_UI_.Controllers
                 EndDate = p.EndDate,
                 Status = p.Status,
                 ProjectLeaderID = p.ProjectLeaderID,
-                ProjectLeaderName = p.ProjectLeaderName, // Lägg till detta för projektledarens namn
+                ProjectLeaderFirstName = p.ProjectLeaderFirstName, // âœ… Tilldela FirstName separat
+                ProjectLeaderLastName = p.ProjectLeaderLastName,   // âœ… Tilldela LastName separat
+
                 Summary = p.Summary != null ? new SummaryViewModel
                 {
                     SummaryID = p.Summary.SummaryID,

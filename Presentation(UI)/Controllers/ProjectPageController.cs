@@ -28,11 +28,12 @@ namespace Presentation_UI_.Controllers
                 ProjectID = project.ProjectID,
                 ProjectNumber = project.ProjectNumber,
                 Description = project.Description,
-                StartDate = project.StartDate == default ? DateTime.MinValue : project.StartDate,
+                StartDate = project.StartDate,
                 EndDate = project.EndDate,
                 Status = project.Status,
                 ProjectLeaderID = project.ProjectLeaderID,
-                ProjectLeaderName = project.ProjectLeaderName ?? "Ej tilldelad", // 👈 KORREKT
+                ProjectLeaderFirstName = project.ProjectLeaderFirstName, // ✅ Ny egenskap
+                ProjectLeaderLastName = project.ProjectLeaderLastName,   // ✅ Ny egenskap
 
                 Orders = project.Orders.Select(o => new OrderViewModel
                 {
@@ -45,16 +46,14 @@ namespace Presentation_UI_.Controllers
                     ProjectID = o.ProjectID
                 }).ToList(),
 
-
                 Summary = project.Summary != null ? new SummaryViewModel
                 {
-                    TotalHours = project.Summary.TotalHours, // Ta bort '?? 0m'
-                    TotalPrice = project.Summary.TotalPrice, // Ta bort '?? 0m'
+                    TotalHours = project.Summary.TotalHours,
+                    TotalPrice = project.Summary.TotalPrice,
                     Notes = project.Summary.Notes ?? "Inga anteckningar"
-                } : new SummaryViewModel(),
-
-
+                } : new SummaryViewModel()
             };
+
 
 
             return View(viewModel);

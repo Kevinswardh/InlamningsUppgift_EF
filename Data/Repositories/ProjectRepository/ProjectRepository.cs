@@ -22,6 +22,23 @@ namespace Data.DatabaseRepository
                 .Include(p => p.Orders)
                     .ThenInclude(o => o.Service)
                 .Include(p => p.Summary)
+                .Select(p => new Project
+                {
+                    ProjectID = p.ProjectID,
+                    ProjectNumber = p.ProjectNumber,
+                    Description = p.Description,
+                    StartDate = p.StartDate,
+                    EndDate = p.EndDate,
+                    Status = p.Status,
+                    ProjectLeader = new ProjectLeader
+                    {
+                        ProjectLeaderID = p.ProjectLeader.ProjectLeaderID,
+                        FirstName = p.ProjectLeader.FirstName,
+                        LastName = p.ProjectLeader.LastName
+                    },
+                    Orders = p.Orders,
+                    Summary = p.Summary
+                })
                 .ToListAsync();
         }
 
@@ -52,7 +69,7 @@ namespace Data.DatabaseRepository
         {
             var project = await _dbSet
                 .Where(p => p.ProjectID == id)
-                .Include(p => p.ProjectLeader)
+                .Include(p => p.ProjectLeader)  // Inkluderar ProjectLeader (utan att skapa ny instans)
                 .Include(p => p.Orders)
                     .ThenInclude(o => o.Customer)
                 .Include(p => p.Orders)
@@ -65,8 +82,23 @@ namespace Data.DatabaseRepository
                 throw new KeyNotFoundException($"Projekt med ID {id} hittades inte.");
             }
 
-            return project;
+            return project;  // Returera direkt utan att skapa ny instans
         }
+
+
+        public async Task<List<Project>> GetProjectsByLeaderIdAsync(int projectLeaderId)
+        {
+            // Hämta alla projekt där ProjectLeaderID matchar
+            var projects = await _context.Projects
+                .Where(p => p.ProjectLeaderID == projectLeaderId)
+                .Include(p => p.ProjectLeader)  // Inkludera projektledaren om du behöver
+                .Include(p => p.Orders)         // Eventuellt inkludera beställningar om det behövs
+                .Include(p => p.Summary)        // Eventuellt inkludera sammanfattning om det behövs
+                .ToListAsync();
+
+            return projects;
+        }
+
 
         public async Task DeleteOrderAsync(Order order)
         {

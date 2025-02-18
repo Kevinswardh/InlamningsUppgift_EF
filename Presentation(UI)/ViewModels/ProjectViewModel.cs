@@ -9,10 +9,11 @@
         public DateTime? EndDate { get; set; }
         public string Status { get; set; }
         public int ProjectLeaderID { get; set; }
-        public string ProjectLeaderName { get; set; } // Lägg till detta
+        public string ProjectLeaderFirstName { get; set; }
+        public string ProjectLeaderLastName { get; set; }
 
+        public string ProjectLeaderName => $"{ProjectLeaderFirstName} {ProjectLeaderLastName}".Trim();
 
-        // Andra navigeringsegenskaper
         public List<OrderViewModel> Orders { get; set; } = new List<OrderViewModel>();
         public SummaryViewModel? Summary { get; set; }
     }

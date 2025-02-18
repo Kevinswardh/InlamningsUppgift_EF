@@ -15,15 +15,16 @@ namespace Presentation_UI_.Controllers
         private readonly ILogger<CreatePageController> _logger;
         private readonly ICustomerService _customerService;
         private readonly IServiceService _service;
+        private readonly IProjectLeaderService _leaderService;
 
-        public CreatePageController(IProjectService projectService, ILogger<CreatePageController> logger, ICustomerService customerService, IServiceService service)
+        public CreatePageController(IProjectService projectService, ILogger<CreatePageController> logger, ICustomerService customerService, IServiceService service, IProjectLeaderService projectLeaderService)
         {
             _projectService = projectService;
             _logger = logger;
             _customerService = customerService;
             _service = service;
+            _leaderService = projectLeaderService;
         }
-
         // GET: /CreatePage/
         public async Task<IActionResult> Index()
         {
@@ -35,7 +36,6 @@ namespace Presentation_UI_.Controllers
             var projectLeaders = await _projectService.GetAllProjectLeadersAsync();
             var services = await _service.GetAllServicesAsync();
             var customers = await _customerService.GetAllCustomersAsync();
-
             var model = new ProjectCreateViewModel
             {
                 ProjectNumber = nextProjectNumber,
@@ -43,8 +43,15 @@ namespace Presentation_UI_.Controllers
                 ProjectLeaders = projectLeaders.Select(pl => new ProjectLeaderViewModel
                 {
                     ProjectLeaderID = pl.ProjectLeaderID,
-                    Name = pl.Name
+                    FirstName = pl.FirstName,
+                    LastName = pl.LastName,
+                    Email = pl.Email,
+                    Phone = pl.Phone,
+                    Department = pl.Department
                 }).ToList(),
+
+
+
                 Services = services.Select(s => new ServiceViewModel
                 {
                     ServiceID = s.ServiceID,
@@ -59,6 +66,7 @@ namespace Presentation_UI_.Controllers
                 Summary = new SummaryViewModel()
             };
 
+
             _logger.LogInformation("ViewModel för Index skapad och returneras.");
             return View(model);
         }
@@ -68,94 +76,46 @@ namespace Presentation_UI_.Controllers
         {
             _logger.LogInformation("Save()-metoden anropades.");
 
-            // 🔍 **Validering av projektinfo**
-            if (string.IsNullOrWhiteSpace(model.Description))
+            // 🔍 Hämta rätt projektledare från databasen
+            var projectLeaders = await _leaderService.GetAllProjectLeadersAsync();
+            var selectedProjectLeader = projectLeaders.FirstOrDefault(pl => pl.ProjectLeaderID == model.ProjectLeaderID);
+
+            if (selectedProjectLeader == null)
             {
-                ModelState.AddModelError("Description", "Benämning är obligatorisk.");
+                _logger.LogError($"Felaktigt ProjectLeaderID: {model.ProjectLeaderID}. Finns inte i databasen.");
+                ModelState.AddModelError("ProjectLeaderID", "Vald projektledare är ogiltig.");
             }
+
+            // 🔍 Validering av projektinfo
+            if (string.IsNullOrWhiteSpace(model.Description))
+                ModelState.AddModelError("Description", "Benämning är obligatorisk.");
 
             if (model.StartDate == default)
-            {
                 ModelState.AddModelError("StartDate", "Startdatum är obligatoriskt.");
-            }
 
             if (string.IsNullOrWhiteSpace(model.Status))
-            {
                 ModelState.AddModelError("Status", "Status är obligatoriskt.");
-            }
 
             if (model.ProjectLeaderID == 0)
-            {
                 ModelState.AddModelError("ProjectLeaderID", "Välj en giltig projektledare.");
-            }
 
-            // 🔍 **Validering av beställningar**
-            if (model.Orders == null || !model.Orders.Any())
-            {
-                ModelState.AddModelError("Orders", "Minst en beställning krävs.");
-            }
-            else
-            {
-                for (int i = 0; i < model.Orders.Count; i++)
-                {
-                    var order = model.Orders[i];
-
-                    if (order.CustomerID == 0)
-                    {
-                        ModelState.AddModelError($"Orders[{i}].CustomerID", "Välj en giltig kund.");
-                    }
-
-                    if (order.ServiceID == 0)
-                    {
-                        ModelState.AddModelError($"Orders[{i}].ServiceID", "Välj en giltig tjänst.");
-                    }
-
-                    if (order.Hours <= 0)
-                    {
-                        ModelState.AddModelError($"Orders[{i}].Hours", "Timmar måste vara större än 0.");
-                    }
-
-                    if (order.Price <= 0)
-                    {
-                        ModelState.AddModelError($"Orders[{i}].Price", "Pris per timme måste vara större än 0.");
-                    }
-                }
-            }
-
-            // Om det finns valideringsfel, returnera vyn med ModelState
+            // Om ModelState är ogiltig, ladda om sidan med felmeddelanden
             if (!ModelState.IsValid)
             {
                 _logger.LogWarning("ModelState är ogiltig, returnerar vy med felmeddelanden.");
 
-                // Ladda om listor för dropdown-menyer
-                var projectLeaders = await _projectService.GetAllProjectLeadersAsync();
-                var services = await _service.GetAllServicesAsync();
-                var customers = await _customerService.GetAllCustomersAsync();
-
+                // Ladda om dropdown-listor för vyn
                 model.ProjectLeaders = projectLeaders.Select(pl => new ProjectLeaderViewModel
                 {
                     ProjectLeaderID = pl.ProjectLeaderID,
-                    Name = pl.Name
-                }).ToList();
-
-                model.Services = services.Select(s => new ServiceViewModel
-                {
-                    ServiceID = s.ServiceID,
-                    ServiceName = s.ServiceName
-                }).ToList();
-
-                model.Customers = customers.Select(c => new CustomerViewModel
-                {
-                    CustomerID = c.CustomerID,
-                    CustomerName = c.CustomerName
+                    FirstName = pl.FirstName,
+                    LastName = pl.LastName
                 }).ToList();
 
                 return View("Index", model);
             }
 
-            // ✅ **Om valideringen passerar, skapa DTO och spara i databasen**
-            _logger.LogInformation("ModelState är giltig. Skapar ProjectDTO.");
-
+            // ✅ Skapa DTO och spara i databasen
             var projectDto = new ProjectDTO
             {
                 ProjectNumber = model.ProjectNumber,
@@ -164,6 +124,11 @@ namespace Presentation_UI_.Controllers
                 EndDate = model.EndDate,
                 Status = model.Status,
                 ProjectLeaderID = model.ProjectLeaderID,
+
+                // 🔹 Sätt FirstName & LastName för att skapa dynamiskt ProjectLeaderName
+                ProjectLeaderFirstName = selectedProjectLeader.FirstName,
+                ProjectLeaderLastName = selectedProjectLeader.LastName,
+
                 Orders = model.Orders.Select(o => new OrderDTO
                 {
                     CustomerID = o.CustomerID,
@@ -172,6 +137,7 @@ namespace Presentation_UI_.Controllers
                     Hours = o.Hours,
                     Price = o.Price
                 }).ToList(),
+
                 Summary = new SummaryDTO
                 {
                     TotalHours = (int)(model.Summary?.TotalHours ?? 0),

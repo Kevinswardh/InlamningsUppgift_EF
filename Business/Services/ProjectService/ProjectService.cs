@@ -71,7 +71,9 @@ public class ProjectService : IProjectService
             EndDate = p.EndDate,
             Status = p.Status,
             ProjectLeaderID = p.ProjectLeaderID,
-            ProjectLeaderName = p.ProjectLeader?.Name ?? "Ej tilldelad",
+            ProjectLeaderFirstName = p.ProjectLeader?.FirstName ?? "Ej tilldelad",
+            ProjectLeaderLastName = p.ProjectLeader?.LastName ?? "",
+
             Orders = p.Orders?.Select(o => new OrderDTO
             {
                 CustomerID = o.CustomerID,
@@ -108,7 +110,8 @@ public class ProjectService : IProjectService
             EndDate = project.EndDate,
             Status = project.Status,
             ProjectLeaderID = project.ProjectLeaderID,
-            ProjectLeaderName = project.ProjectLeader?.Name ?? "Ej tilldelad",
+            ProjectLeaderFirstName = project.ProjectLeader?.FirstName ?? "Ej tilldelad",
+            ProjectLeaderLastName = project.ProjectLeader?.LastName ?? "",
 
             Orders = project.Orders.Select(o => new OrderDTO
             {
@@ -140,11 +143,13 @@ public class ProjectService : IProjectService
         return leaders.Select(l => new ProjectLeaderDTO
         {
             ProjectLeaderID = l.ProjectLeaderID,
-            Name = l.Name,
+            FirstName = l.FirstName, // ✅ Ny kod
+            LastName = l.LastName,   // ✅ Ny kod
             Email = l.Email,
             Phone = l.Phone,
             Department = l.Department
         }).ToList();
+
     }
 
     public async Task<IEnumerable<ServiceDTO>> GetAllServicesAsync()
