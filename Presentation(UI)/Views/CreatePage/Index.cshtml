@@ -47,7 +47,10 @@
                             <option value="0">Välj en projektledare</option> <!-- ✅ Lägg tillbaka denna -->
                             @foreach (var leader in Model.ProjectLeaders)
                             {
+                                @if(leader.ProjectLeaderID != -1)
+                                {                           
                                 <option value="@leader.ProjectLeaderID">@($"{leader.FirstName} {leader.LastName}")</option>
+                                }
                             }
                         </select>
 
