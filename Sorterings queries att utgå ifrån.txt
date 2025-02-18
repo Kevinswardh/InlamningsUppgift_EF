@@ -1,0 +1,47 @@
+-- Hämtar alla projekt och sorterar dem i stigande ordning efter startdatum (äldsta projekt först).
+SELECT * FROM Projects
+ORDER BY StartDate ASC;
+
+-- Hämtar alla projekt och sorterar dem efter slutdatum.
+-- Projekt utan slutdatum (`NULL`) hamnar sist.
+SELECT * FROM Projects
+ORDER BY 
+    CASE WHEN EndDate IS NULL THEN 1 ELSE 0 END, 
+    EndDate ASC;
+
+-- Hämtar alla kunder och sorterar dem i alfabetisk ordning efter kundens namn.
+SELECT * FROM Customers
+ORDER BY CustomerName ASC;
+
+-- Hämtar alla kunder och sorterar dem efter rabatt i fallande ordning (högst rabatt först).
+SELECT * FROM Customers
+ORDER BY Discount DESC;
+
+-- Hämtar alla beställningar och sorterar dem i fallande ordning efter pris (dyraste först).
+SELECT * FROM Orders
+ORDER BY Price DESC;
+
+-- Hämtar alla projektledare och sorterar dem först efter avdelning i alfabetisk ordning.
+-- Om två projektledare har samma avdelning sorteras de efter namn.
+SELECT * FROM ProjectLeaders
+ORDER BY Department ASC, Name ASC;
+
+-- Hämtar alla projekt och sorterar dem efter startdatum (äldsta först).
+-- Om två projekt har samma startdatum sorteras de efter slutdatum, 
+-- där projekt utan slutdatum (`NULL`) hamnar sist.
+SELECT * FROM Projects
+ORDER BY StartDate ASC, 
+         CASE WHEN EndDate IS NULL THEN 1 ELSE 0 END, 
+         EndDate ASC;
+
+-- Hämtar alla projekt och sorterar dem efter status i en specifik ordning.
+-- "Pending" visas först, sedan "Ongoing", därefter "Completed".
+-- Om något projekt har en annan status hamnar det sist.
+SELECT * FROM Projects
+ORDER BY 
+    CASE 
+        WHEN Status = 'Pending' THEN 1
+        WHEN Status = 'Ongoing' THEN 2
+        WHEN Status = 'Completed' THEN 3
+        ELSE 4
+    END;
