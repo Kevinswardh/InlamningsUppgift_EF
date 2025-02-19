@@ -9,6 +9,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Presentation_UI_.Controllers
 {
+    /// <summary>
+    /// Handles the creation of new projects, including project information input, validation, and saving to the database.
+    /// </summary>
     public class CreatePageController : Controller
     {
         private readonly IProjectService _projectService;
@@ -17,6 +20,14 @@ namespace Presentation_UI_.Controllers
         private readonly IServiceService _service;
         private readonly IProjectLeaderService _leaderService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CreatePageController"/> with the required services and logger.
+        /// </summary>
+        /// <param name="projectService">Service for project-related operations.</param>
+        /// <param name="logger">Logger for logging information and errors.</param>
+        /// <param name="customerService">Service for customer operations.</param>
+        /// <param name="service">Service for handling available services.</param>
+        /// <param name="projectLeaderService">Service for project leader management.</param>
         public CreatePageController(IProjectService projectService, ILogger<CreatePageController> logger, ICustomerService customerService, IServiceService service, IProjectLeaderService projectLeaderService)
         {
             _projectService = projectService;
@@ -25,7 +36,13 @@ namespace Presentation_UI_.Controllers
             _service = service;
             _leaderService = projectLeaderService;
         }
+
+
         // GET: /CreatePage/
+        /// <summary>
+        /// Loads the project creation page with necessary data such as the next project number, project leaders, services, and customers.
+        /// </summary>
+        /// <returns>The view populated with a <see cref="ProjectCreateViewModel"/> for project creation.</returns>
         public async Task<IActionResult> Index()
         {
             _logger.LogInformation("Index()-metoden anropades.");
@@ -71,6 +88,17 @@ namespace Presentation_UI_.Controllers
             return View(model);
         }
 
+
+        /// <summary>
+        /// Saves a new project to the database after validating the provided project creation view model.
+        /// </summary>
+        /// <param name="model">The <see cref="ProjectCreateViewModel"/> containing project details.</param>
+        /// <returns>
+        /// Redirects to the home page on success, or reloads the project creation page with validation errors.
+        /// </returns>
+        /// <remarks>
+        /// Validation checks include project leader selection, project description, start date, and status.
+        /// </remarks>
         [HttpPost]
         public async Task<IActionResult> Save(ProjectCreateViewModel model)
         {
@@ -169,7 +197,10 @@ namespace Presentation_UI_.Controllers
         }
 
 
-
+        /// <summary>
+        /// Cancels the project creation process and redirects to the home page.
+        /// </summary>
+        /// <returns>A redirection to the home page.</returns>
         [HttpGet]
         public IActionResult Cancel()
         {

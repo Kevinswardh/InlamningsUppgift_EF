@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 namespace Presentation_UI_.Controllers
 {
 
+    /// <summary>
+    /// Handles editing of existing projects, including loading project data, validating input, and saving updates to the database.
+    /// </summary>
     public class EditPageController : Controller
     {
         private readonly IProjectService _projectService;
@@ -15,7 +18,13 @@ namespace Presentation_UI_.Controllers
         private readonly IServiceService _service;
         private readonly ICustomerService _customerService;
 
-        // Konstruktor
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EditPageController"/> with the required services and logger.
+        /// </summary>
+        /// <param name="projectService">Service for project-related operations.</param>
+        /// <param name="logger">Logger for logging information and errors.</param>
+        /// <param name="service">Service for managing available services.</param>
+        /// <param name="customerService">Service for customer-related operations.</param>
         public EditPageController(IProjectService projectService, ILogger<EditPageController> logger, IServiceService service, ICustomerService customerService)
         {
             _projectService = projectService;
@@ -25,6 +34,14 @@ namespace Presentation_UI_.Controllers
         }
 
 
+
+        /// <summary>
+        /// Loads the edit page for a specific project by ID, populating the view with project details, project leaders, services, and customers.
+        /// </summary>
+        /// <param name="id">The unique identifier of the project to edit.</param>
+        /// <returns>
+        /// The view populated with a <see cref="ProjectCreateViewModel"/> if the project is found; otherwise, a NotFound result.
+        /// </returns>
         [HttpGet]
         public async Task<IActionResult> Index(int id)
         {
@@ -103,7 +120,17 @@ namespace Presentation_UI_.Controllers
 
         }
 
-
+        /// <summary>
+        /// Saves the edited project details to the database after validating the provided project creation view model.
+        /// </summary>
+        /// <param name="model">The <see cref="ProjectCreateViewModel"/> containing the updated project information.</param>
+        /// <returns>
+        /// Redirects to the home page on success, or reloads the edit page with validation errors if the model is invalid.
+        /// </returns>
+        /// <remarks>
+        /// This method checks for valid project leader selection, required fields, and ensures at least one order is present.
+        /// It also handles updating existing orders and adding new ones.
+        /// </remarks>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SaveEdit(ProjectCreateViewModel model)

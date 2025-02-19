@@ -8,16 +8,31 @@ using System.Threading.Tasks;
 
 namespace Business.Services
 {
+
+    /// <summary>
+    /// Provides implementations for operations related to project leaders.
+    /// </summary>
     public class ProjectLeaderService : IProjectLeaderService
     {
         private readonly IBaseRepository<ProjectLeader> _projectLeaderRepository;
         private readonly IProjectRepository _projectRepository;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ProjectLeaderService"/> class with the required repositories.
+        /// </summary>
+        /// <param name="projectLeaderRepository">The repository for project leader data access.</param>
+        /// <param name="projectRepository">The repository for project data access.</param>
         public ProjectLeaderService(IBaseRepository<ProjectLeader> projectLeaderRepository, IProjectRepository projectRepository)
         {
             _projectLeaderRepository = projectLeaderRepository;
             _projectRepository = projectRepository;
         }
 
+
+        /// <summary>
+        /// Retrieves all project leaders from the repository asynchronously.
+        /// </summary>
+        /// <returns>A collection of <see cref="ProjectLeaderDTO"/> representing all project leaders.</returns>
         public async Task<IEnumerable<ProjectLeaderDTO>> GetAllProjectLeadersAsync()
         {
             var leaders = await _projectLeaderRepository.GetAllAsync();
@@ -34,7 +49,11 @@ namespace Business.Services
         }
 
 
-
+        /// <summary>
+        /// Creates a new project leader in the repository asynchronously, using a transaction.
+        /// </summary>
+        /// <param name="projectLeaderDto">The data transfer object containing project leader details.</param>
+        /// <exception cref="Exception">Thrown when the transaction fails during creation.</exception>
         public async Task CreateProjectLeaderAsync(ProjectLeaderDTO projectLeaderDto)
         {
             await _projectLeaderRepository.BeginTransactionAsync();
@@ -59,6 +78,11 @@ namespace Business.Services
         }
 
 
+        /// <summary>
+        /// Deletes a project leader by their ID asynchronously, reassigning or clearing project associations and marking the leader as deleted.
+        /// </summary>
+        /// <param name="projectLeaderId">The ID of the project leader to delete.</param>
+        /// <exception cref="Exception">Thrown when deletion fails or related data cannot be updated.</exception>
         public async Task DeleteProjectLeaderAsync(int projectLeaderId)
         {
             await _projectLeaderRepository.BeginTransactionAsync(); // Starta transaktion

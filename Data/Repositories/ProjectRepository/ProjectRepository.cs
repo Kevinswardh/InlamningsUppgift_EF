@@ -6,13 +6,25 @@ using System.Threading.Tasks;
 
 namespace Data.DatabaseRepository
 {
+    /// <summary>
+    /// Provides implementations for project-related data operations, including CRUD, custom queries, and transaction handling.
+    /// </summary>
     public class ProjectRepository : BaseRepository<Project>, IProjectRepository
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ProjectRepository"/> class with the specified database context.
+        /// </summary>
+        /// <param name="context">The application's database context.</param>
         public ProjectRepository(AppDbContext context) : base(context) { }
 
 
 
         //Overrides
+
+        /// <summary>
+        /// Retrieves all projects along with their project leaders, orders, services, customers, and summaries asynchronously.
+        /// </summary>
+        /// <returns>A collection of fully populated <see cref="Project"/> entities.</returns>
         public override async Task<IEnumerable<Project>> GetAllAsync()
         {
             return await _dbSet
@@ -43,28 +55,55 @@ namespace Data.DatabaseRepository
         }
 
 
-        //New (Not base)
+        //New (Not Overides)
 
+        /// <summary>
+        /// Retrieves the highest project number in the database. If no projects exist, returns "P-0".
+        /// </summary>
+        /// <returns>The highest project number as a string.</returns>
         public async Task<string> GetMaxProjectNumberAsync()
         {
             var lastProject = await _dbSet.OrderByDescending(p => p.ProjectID).FirstOrDefaultAsync();
             return lastProject?.ProjectNumber ?? "P-0";
         }
+
+
+        /// <summary>
+        /// Retrieves a list of all project leaders from the database asynchronously.
+        /// </summary>
+        /// <returns>A collection of <see cref="ProjectLeader"/> entities.</returns>
         public async Task<IEnumerable<ProjectLeader>> GetAllProjectLeadersAsync()
         {
             return await _context.ProjectLeaders.ToListAsync();
         }
 
+
+        /// <summary>
+        /// Retrieves all available services from the database asynchronously.
+        /// </summary>
+        /// <returns>A collection of <see cref="Service"/> entities.</returns>
         public async Task<IEnumerable<Service>> GetAllServicesAsync()
         {
             return await _context.Services.ToListAsync();
         }
 
+
+        /// <summary>
+        /// Retrieves all available services from the database asynchronously.
+        /// </summary>
+        /// <returns>A collection of <see cref="Service"/> entities.</returns>
         public async Task<IEnumerable<Customer>> GetAllCustomersAsync()
         {
             return await _context.Customers.ToListAsync();
         }
 
+
+        /// <summary>
+        /// Retrieves a specific project by ID along with its project leader, orders, customers, services, and summary.
+        /// </summary>
+        /// <param name="id">The ID of the project to retrieve.</param>
+        /// <returns>A <see cref="Project"/> entity containing detailed related data.</returns>
+        /// <exception cref="KeyNotFoundException">Thrown if no project is found with the specified ID.</exception>
         public async Task<Project> GetProjectByIdWithDetailsAsync(int id)
         {
             var project = await _dbSet
@@ -86,6 +125,11 @@ namespace Data.DatabaseRepository
         }
 
 
+        /// <summary>
+        /// Retrieves all projects led by a specific project leader.
+        /// </summary>
+        /// <param name="projectLeaderId">The ID of the project leader.</param>
+        /// <returns>A list of <see cref="Project"/> entities led by the given leader.</returns>
         public async Task<List<Project>> GetProjectsByLeaderIdAsync(int projectLeaderId)
         {
             // Hämta alla projekt där ProjectLeaderID matchar
@@ -100,6 +144,10 @@ namespace Data.DatabaseRepository
         }
 
 
+        /// <summary>
+        /// Deletes the specified order from the database.
+        /// </summary>
+        /// <param name="order">The order entity to remove.</param>
         public async Task DeleteOrderAsync(Order order)
         {
             _context.Orders.Remove(order);

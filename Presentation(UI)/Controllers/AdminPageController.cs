@@ -7,12 +7,21 @@ using System.Threading.Tasks;
 
 namespace Presentation_UI_.Controllers
 {
+    /// <summary>
+    /// Handles administrative operations for managing customers, services, and project leaders in the admin page.
+    /// </summary>
     public class AdminPageController : Controller
     {
         private readonly ICustomerService _customerService;
         private readonly IServiceService _serviceService;
         private readonly IProjectLeaderService _projectLeaderService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AdminPageController"/> with the required services.
+        /// </summary>
+        /// <param name="customerService">Service for customer operations.</param>
+        /// <param name="serviceService">Service for service-related operations.</param>
+        /// <param name="projectLeaderService">Service for project leader management.</param>
         public AdminPageController(ICustomerService customerService, IServiceService serviceService, IProjectLeaderService projectLeaderService)
         {
             _customerService = customerService;
@@ -20,7 +29,13 @@ namespace Presentation_UI_.Controllers
             _projectLeaderService = projectLeaderService;
         }
 
+
         // ✅ Ladda AdminPage med alla kunder, tjänster och projektledare
+        /// <summary>
+        /// Loads the admin page with lists of customers, services, and active project leaders.
+        /// Filters out deleted project leaders or those with a <c>ProjectLeaderID</c> of -1.
+        /// </summary>
+        /// <returns>The admin page view populated with the necessary data.</returns>
         public async Task<IActionResult> Index()
         {
             var customers = await _customerService.GetAllCustomersAsync();
@@ -67,6 +82,12 @@ namespace Presentation_UI_.Controllers
 
 
         // 🔵 Lägg till Projektledare (Vänta på databas innan sidan returneras)
+        /// <summary>
+        /// Adds a new project leader to the database based on the provided view model.
+        /// </summary>
+        /// <param name="projectLeader">The project leader view model containing the details.</param>
+        /// <returns>Redirects to the <c>Index</c> action with a success or error message.</returns>
+
         [HttpPost]
         public async Task<IActionResult> AddProjectLeader(ProjectLeaderViewModel projectLeader)
         {
@@ -98,6 +119,11 @@ namespace Presentation_UI_.Controllers
 
 
         // 🔵 Ta bort Projektledare (Vänta på att databasen uppdateras)
+        /// <summary>
+        /// Deletes a project leader by their ID and updates the database.
+        /// </summary>
+        /// <param name="id">The unique identifier of the project leader to delete.</param>
+        /// <returns>Redirects to the <c>Index</c> action with a success message.</returns>
         [HttpPost]
         public async Task<IActionResult> DeleteProjectLeader(int id)
         {
@@ -110,6 +136,11 @@ namespace Presentation_UI_.Controllers
 
 
         // 🔵 Lägg till Kund
+        /// <summary>
+        /// Adds a new customer to the database using the provided customer view model.
+        /// </summary>
+        /// <param name="customerViewModel">The customer view model containing the customer information.</param>
+        /// <returns>Redirects to the <c>Index</c> action with a success or error message.</returns>
         [HttpPost]
         public async Task<IActionResult> AddCustomer(CustomerViewModel customerViewModel)
         {
@@ -137,6 +168,11 @@ namespace Presentation_UI_.Controllers
 
 
         // 🔵 Ta bort Kund
+        /// <summary>
+        /// Deletes a customer from the database based on their ID.
+        /// </summary>
+        /// <param name="id">The unique identifier of the customer to delete.</param>
+        /// <returns>Redirects to the <c>Index</c> action with a success message.</returns>
         [HttpPost]
         public async Task<IActionResult> DeleteCustomer(int id)
         {
@@ -148,6 +184,11 @@ namespace Presentation_UI_.Controllers
         }
 
         // 🔵 Lägg till Tjänst
+        /// <summary>
+        /// Adds a new service to the database using the provided service view model.
+        /// </summary>
+        /// <param name="serviceViewModel">The service view model containing service details.</param>
+        /// <returns>Redirects to the <c>Index</c> action with a success or error message.</returns>
         [HttpPost]
         public async Task<IActionResult> AddService(ServiceViewModel serviceViewModel)
         {
@@ -171,6 +212,11 @@ namespace Presentation_UI_.Controllers
 
 
         // 🔵 Ta bort Tjänst
+        /// <summary>
+        /// Deletes a service from the database based on the service ID.
+        /// </summary>
+        /// <param name="serviceID">The unique identifier of the service to delete.</param>
+        /// <returns>Redirects to the <c>Index</c> action with a success message.</returns>
         [HttpPost]
         public async Task<IActionResult> DeleteService(int serviceID)
         {

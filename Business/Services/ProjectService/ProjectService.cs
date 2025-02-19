@@ -6,6 +6,11 @@ using Data.DatabaseRepository;
 using Data.Entities;
 using Microsoft.Extensions.Logging;
 
+
+
+/// <summary>
+/// Provides implementations for operations related to projects.
+/// </summary>
 public class ProjectService : IProjectService
 {
     private readonly IProjectRepository _projectRepository;
@@ -15,6 +20,15 @@ public class ProjectService : IProjectService
     private readonly ILogger<ProjectService> _logger;
     private readonly IServiceService _service;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ProjectService"/> class with the required repositories and services.
+    /// </summary>
+    /// <param name="projectRepository">The repository for project data access.</param>
+    /// <param name="projectLeaderRepository">The repository for project leader data access.</param>
+    /// <param name="orderRepository">The repository for order data access.</param>
+    /// <param name="context">The application database context.</param>
+    /// <param name="logger">The logger for logging project-related information.</param>
+    /// <param name="serviceService">The service handling service-related operations.</param>
     public ProjectService(
         IProjectRepository projectRepository,
         IBaseRepository<ProjectLeader> projectLeaderRepository,
@@ -31,6 +45,11 @@ public class ProjectService : IProjectService
         _service = serviceService;
     }
 
+
+    /// <summary>
+    /// Retrieves the next available project number based on the highest existing number.
+    /// </summary>
+    /// <returns>A string representing the next project number.</returns>
     public async Task<string> GetNextProjectNumberAsync()
     {
         var maxProjectNumber = await _projectRepository.GetMaxProjectNumberAsync();
@@ -38,6 +57,13 @@ public class ProjectService : IProjectService
         return $"P-{numberPart + 1}";
     }
 
+
+
+    /// <summary>
+    /// Creates a new project in the repository asynchronously with transaction management.
+    /// </summary>
+    /// <param name="projectDto">The data transfer object containing project details.</param>
+    /// <exception cref="KeyNotFoundException">Thrown if the specified project leader is not found.</exception>
     public async Task CreateProjectAsync(ProjectDTO projectDto)
     {
         await _projectRepository.BeginTransactionAsync(); // 🟢 Starta transaktion
@@ -59,6 +85,12 @@ public class ProjectService : IProjectService
         }
     }
 
+
+
+    /// <summary>
+    /// Retrieves all projects with their associated data asynchronously.
+    /// </summary>
+    /// <returns>A collection of <see cref="ProjectDTO"/> representing all projects.</returns>
     public async Task<IEnumerable<ProjectDTO>> GetAllProjectsAsync()
     {
         var projects = await _projectRepository.GetAllAsync();
@@ -95,6 +127,14 @@ public class ProjectService : IProjectService
         }).ToList();
     }
 
+
+
+    /// <summary>
+    /// Retrieves a project with detailed information by its ID.
+    /// </summary>
+    /// <param name="id">The unique identifier of the project.</param>
+    /// <returns>A <see cref="ProjectDTO"/> containing detailed project information.</returns>
+    /// <exception cref="KeyNotFoundException">Thrown if the project is not found.</exception>
     public async Task<ProjectDTO> GetProjectByIdAsync(int id)
     {
         var project = await _projectRepository.GetProjectByIdWithDetailsAsync(id);
@@ -137,6 +177,11 @@ public class ProjectService : IProjectService
     }
 
 
+
+    /// <summary>
+    /// Retrieves all project leaders from the repository asynchronously.
+    /// </summary>
+    /// <returns>A collection of <see cref="ProjectLeaderDTO"/> representing all project leaders.</returns>
     public async Task<IEnumerable<ProjectLeaderDTO>> GetAllProjectLeadersAsync()
     {
         var leaders = await _projectLeaderRepository.GetAllAsync();
@@ -152,6 +197,12 @@ public class ProjectService : IProjectService
 
     }
 
+
+
+    /// <summary>
+    /// Retrieves all available services associated with projects asynchronously.
+    /// </summary>
+    /// <returns>A collection of <see cref="ServiceDTO"/> representing all services.</returns>
     public async Task<IEnumerable<ServiceDTO>> GetAllServicesAsync()
     {
         var services = await _projectRepository.GetAllServicesAsync();
@@ -162,6 +213,11 @@ public class ProjectService : IProjectService
         }).ToList();
     }
 
+
+    /// <summary>
+    /// Retrieves all customers associated with projects asynchronously.
+    /// </summary>
+    /// <returns>A collection of <see cref="CustomerDTO"/> representing all customers.</returns>
     public async Task<IEnumerable<CustomerDTO>> GetAllCustomersAsync()
     {
         var customers = await _projectRepository.GetAllCustomersAsync();
@@ -172,6 +228,13 @@ public class ProjectService : IProjectService
         }).ToList();
     }
 
+
+
+    /// <summary>
+    /// Updates an existing project's details and related data asynchronously with transaction management.
+    /// </summary>
+    /// <param name="projectDto">The data transfer object containing updated project information.</param>
+    /// <exception cref="KeyNotFoundException">Thrown if the project is not found.</exception>
     public async Task UpdateProjectAsync(ProjectDTO projectDto)
     {
         await _projectRepository.BeginTransactionAsync();
@@ -225,6 +288,12 @@ public class ProjectService : IProjectService
     }
 
 
+
+    /// <summary>
+    /// Deletes a project by its ID from the repository asynchronously with transaction management.
+    /// </summary>
+    /// <param name="id">The ID of the project to delete.</param>
+    /// <exception cref="KeyNotFoundException">Thrown if the project is not found.</exception>
     public async Task DeleteProjectAsync(int id)
     {
         await _projectRepository.BeginTransactionAsync();

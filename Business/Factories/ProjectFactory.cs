@@ -6,8 +6,20 @@ using System.Linq;
 
 namespace Business.Factories
 {
+    /// <summary>
+    /// Provides methods to create <see cref="Project"/> entities from data transfer objects.
+    /// </summary>
+
     public static class ProjectFactory
     {
+        /// <summary>
+        /// Creates a <see cref="Project"/> entity from the provided <see cref="ProjectDTO"/> and associated <see cref="ProjectLeader"/>.
+        /// </summary>
+        /// <param name="dto">The data transfer object containing project details.</param>
+        /// <param name="projectLeader">The project leader assigned to the project.</param>
+        /// <returns>A new <see cref="Project"/> entity with populated properties.</returns>
+        /// <exception cref="ArgumentException">Thrown when the end date is earlier than the start date.</exception>
+
         public static Project Create(ProjectDTO dto, ProjectLeader projectLeader)
         {
             if (dto.EndDate.HasValue && dto.EndDate < dto.StartDate)

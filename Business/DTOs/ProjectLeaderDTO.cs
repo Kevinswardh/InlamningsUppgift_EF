@@ -9,6 +9,6 @@
         public string? Phone { get; set; }
         public string? Department { get; set; }
         public int IsDeleted { get; set; }
-        public string ProjectLeaderName => $"{FirstName} {LastName}".Trim(); // 🔹 Dynamiskt fullständigt namn
+        public string ProjectLeaderName => $"{FirstName} {LastName}".Trim(); // Ok logic för DTO
     }
 }
